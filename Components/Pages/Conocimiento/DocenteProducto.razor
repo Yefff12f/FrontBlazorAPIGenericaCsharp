@@ -1,0 +1,59 @@
+@page "/docente_productos"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Docente - Producto</h3>
+
+    <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo</button>
+
+    @if (mostrarFormulario)
+    {
+        <input type="number" @bind="docente" placeholder="Docente ID" />
+        <input type="number" @bind="producto" placeholder="Producto ID" />
+        <button @onclick="GuardarRegistro">Guardar</button>
+    }
+
+    <table class="table">
+        @foreach (var r in registros)
+        {
+            <tr>
+                <td>@r["id"]</td>
+                <td>@r["docente"]</td>
+                <td>@r["producto"]</td>
+                <td>
+                    <button @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </table>
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool mostrarFormulario=false;
+    private int? docente, producto;
+
+    protected override async Task OnInitializedAsync()
+        => registros = await Api.ListarAsync("docente_producto");
+
+    void NuevoRegistro() => mostrarFormulario=true;
+
+    async Task GuardarRegistro()
+    {
+        await Api.CrearAsync("docente_producto", new Dictionary<string, object?>
+        {
+            ["docente"]=docente,
+            ["producto"]=producto
+        });
+
+        registros = await Api.ListarAsync("docente_producto");
+        mostrarFormulario=false;
+    }
+
+    async Task EliminarRegistro(Dictionary<string, object?> r)
+    {
+        await Api.EliminarAsync("docente_producto","id",r["id"]?.ToString()??"");
+        registros = await Api.ListarAsync("docente_producto");
+    }
+}

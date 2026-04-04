@@ -1,0 +1,264 @@
+@page "/grupos"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Grupos de Investigación</h3>
+
+    @* ───────── ALERTA DE EXITO O ERROR ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* ───────── BOTON PARA MOSTRAR FORMULARIO DE CREAR ───────── *@
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Grupo</button>
+    }
+
+    @* ───────── FORMULARIO (CREAR / EDITAR) ───────── *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                @(editando ? "Editar Grupo" : "Nuevo Grupo")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                                <div class="row">
+                        @if (editando)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Id</label>
+                                <input class="form-control" @bind="campoId" disabled />
+                            </div>
+                        }
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input class="form-control" @bind="campoNombre" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">URL Grupo LAC</label>
+                            <input class="form-control" @bind="campoUrlGrupLAC" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Categoría</label>
+                            <input class="form-control" @bind="campoCategoria" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Convocatoria</label>
+                            <input class="form-control" @bind="campoConvocatoria" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Fecha Fundación</label>
+                            <input class="form-control" type="date" @bind="campoFechaFundacion" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Universidad (ID)</label>
+                            <input class="form-control" type="number" @bind="campoUniversidad" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Interno</label>
+                            <input class="form-check-input" type="checkbox" @bind="campoInterno" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Ámbito</label>
+                            <input class="form-control" @bind="campoAmbito" />
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @* ───────── SPINNER DE CARGA ───────── *@
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+
+    @* ───────── TABLA DE REGISTROS ───────── *@
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>URL LAC</th>
+                    <th>Categoría</th>
+                    <th>Convocatoria</th>
+                    <th>Fecha</th>
+                    <th>Universidad</th>
+                    <th>Interno</th>
+                    <th>Ámbito</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["id"]</td>
+                        <td>@reg["nombre"]</td>
+                        <td>@reg["url_grupLAC"]</td>
+                        <td>@reg["categoria"]</td>
+                        <td>@reg["convocatoria"]</td>
+                        <td>@(reg["fecha_fundacion"]?.ToString())</td>
+                        <td>@reg["universidad"]</td>
+                        <td>@reg["interno"]</td>
+                        <td>@reg["ambito"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1"
+                                    @onclick="() => EditarRegistro(reg)">
+                                Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => EliminarRegistro(reg)">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @* ───────── MENSAJE CUANDO NO HAY DATOS ───────── *@
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros en la tabla grupo_investigacion.</div>
+    }
+</div>
+
+@code {
+    // ───────── VARIABLES DE ESTADO ─────────
+
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true;
+    private bool mostrarFormulario = false;
+    private bool editando = false;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+
+    // Campos del formulario para grupo de investigación
+    private string campoId = string.Empty; // solo lectura en edición
+    private string campoNombre = string.Empty;
+    private string campoUrlGrupLAC = string.Empty;
+    private string campoCategoria = string.Empty;
+    private string campoConvocatoria = string.Empty;
+    private DateTime? campoFechaFundacion = null;
+    private int? campoUniversidad = null;
+    private bool campoInterno = false;
+    private string campoAmbito = string.Empty;
+
+    // ───────── CICLO DE VIDA ─────────
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+    }
+
+    // ───────── METODOS ─────────
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("grupo_investigacion");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+        campoId = string.Empty;
+        campoNombre = string.Empty;
+        campoUrlGrupLAC = string.Empty;
+        campoCategoria = string.Empty;
+        campoConvocatoria = string.Empty;
+        campoFechaFundacion = null;
+        campoUniversidad = null;
+        campoInterno = false;
+        campoAmbito = string.Empty;
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        campoId = reg["id"]?.ToString() ?? string.Empty;
+        campoNombre = reg["nombre"]?.ToString() ?? string.Empty;
+        campoUrlGrupLAC = reg["url_grupLAC"]?.ToString() ?? string.Empty;
+        campoCategoria = reg["categoria"]?.ToString() ?? string.Empty;
+        campoConvocatoria = reg["convocatoria"]?.ToString() ?? string.Empty;
+        if (DateTime.TryParse(reg["fecha_fundacion"]?.ToString(), out DateTime f))
+            campoFechaFundacion = f;
+        campoUniversidad = reg["universidad"] as int?;
+        campoInterno = reg["interno"] as bool? ?? false;
+        campoAmbito = reg["ambito"]?.ToString() ?? string.Empty;
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["nombre"] = campoNombre,
+            ["url_grupLAC"] = campoUrlGrupLAC,
+            ["categoria"] = campoCategoria,
+            ["convocatoria"] = campoConvocatoria,
+            ["fecha_fundacion"] = campoFechaFundacion,
+            ["universidad"] = campoUniversidad,
+            ["interno"] = campoInterno,
+            ["ambito"] = campoAmbito
+        };
+
+        if (editando)
+        {
+            var resultado = await Api.ActualizarAsync("grupo_investigacion", "id", campoId, datos);
+            exito = resultado.exito;
+            mensaje = resultado.mensaje;
+        }
+        else
+        {
+            var resultado = await Api.CrearAsync("grupo_investigacion", datos);
+            exito = resultado.exito;
+            mensaje = resultado.mensaje;
+        }
+
+        if (exito)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        string id = reg["id"]?.ToString() ?? string.Empty;
+        var resultado = await Api.EliminarAsync("grupo_investigacion", "id", id);
+        exito = resultado.exito;
+        mensaje = resultado.mensaje;
+        if (exito)
+        {
+            await CargarRegistros();
+        }
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+        mensaje = string.Empty;
+    }
+}

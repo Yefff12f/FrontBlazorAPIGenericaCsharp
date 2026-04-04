@@ -1,0 +1,100 @@
+@page "/proyecto_productos"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Proyecto - Producto</h3>
+
+    @if (mostrarFormulario)
+    {
+        <div class="mb-2">
+            <input type="number" @bind="campoProyecto" placeholder="Proyecto ID" class="form-control mb-1" />
+            <input type="number" @bind="campoProducto" placeholder="Producto ID" class="form-control mb-1" />
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        </div>
+    }
+    else
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Registro</button>
+    }
+
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr><th>Id</th><th>Proyecto</th><th>Producto</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var r in registros)
+            {
+                <tr>
+                    <td>@r["id"]</td>
+                    <td>@r["proyecto"]</td>
+                    <td>@r["producto"]</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool mostrarFormulario = false, editando = false;
+    private string campoId = string.Empty;
+    private int? campoProyecto = null, campoProducto = null;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros()
+    {
+        registros = await Api.ListarAsync("proyecto_producto");
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+        campoId = string.Empty;
+        campoProyecto = null;
+        campoProducto = null;
+        mostrarFormulario = true;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> r)
+    {
+        editando = true;
+        campoId = r["id"]?.ToString() ?? "";
+        campoProyecto = r["proyecto"] as int?;
+        campoProducto = r["producto"] as int?;
+        mostrarFormulario = true;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["proyecto"] = campoProyecto,
+            ["producto"] = campoProducto
+        };
+
+        var resultado = editando
+            ? await Api.ActualizarAsync("proyecto_producto", "id", campoId, datos)
+            : await Api.CrearAsync("proyecto_producto", datos);
+
+        if (resultado.exito)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> r)
+    {
+        await Api.EliminarAsync("proyecto_producto", "id", r["id"]?.ToString() ?? "");
+        await CargarRegistros();
+    }
+
+    private void Cancelar() => mostrarFormulario = false;
+}

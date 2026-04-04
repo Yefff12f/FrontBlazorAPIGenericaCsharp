@@ -1,0 +1,82 @@
+@page "/productos"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Productos</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+        </div>
+    }
+
+    <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Producto</button>
+
+    @if (mostrarFormulario)
+    {
+        <input @bind="nombre" placeholder="Nombre" />
+        <input @bind="tipoProducto" type="number" placeholder="Tipo Producto ID" />
+        <input @bind="proyecto" type="number" placeholder="Proyecto ID" />
+
+        <button @onclick="GuardarRegistro">Guardar</button>
+    }
+
+    <table class="table">
+        @foreach (var r in registros)
+        {
+            <tr>
+                <td>@r["id"]</td>
+                <td>@r["nombre"]</td>
+                <td>
+                    <button @onclick="() => EditarRegistro(r)">Editar</button>
+                    <button @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </table>
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool mostrarFormulario=false, editando=false;
+    private string campoId="", nombre="";
+    private int? tipoProducto, proyecto;
+    private string mensaje=""; bool exito;
+
+    protected override async Task OnInitializedAsync()
+        => registros = await Api.ListarAsync("producto");
+
+    void NuevoRegistro(){mostrarFormulario=true;editando=false;}
+
+    void EditarRegistro(Dictionary<string, object?> r)
+    {
+        editando=true;mostrarFormulario=true;
+        campoId=r["id"]?.ToString()??"";
+        nombre=r["nombre"]?.ToString()??"";
+    }
+
+    async Task GuardarRegistro()
+    {
+        var datos=new Dictionary<string, object?>{
+            ["nombre"]=nombre,
+            ["tipo_producto"]=tipoProducto,
+            ["proyecto"]=proyecto
+        };
+
+        var res=editando
+        ? await Api.ActualizarAsync("producto","id",campoId,datos)
+        : await Api.CrearAsync("producto",datos);
+
+        mensaje=res.mensaje;exito=res.exito;
+        if(exito){mostrarFormulario=false;registros=await Api.ListarAsync("producto");}
+    }
+
+    async Task EliminarRegistro(Dictionary<string, object?> r)
+    {
+        var res=await Api.EliminarAsync("producto","id",r["id"]?.ToString()??"");
+        mensaje=res.mensaje;exito=res.exito;
+        if(exito) registros=await Api.ListarAsync("producto");
+    }
+}

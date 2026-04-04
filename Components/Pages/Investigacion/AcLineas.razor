@@ -1,0 +1,119 @@
+@page "/ac-lineas"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Área Conocimiento — Línea de Investigación</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Nueva Relación Área Conocimiento — Línea</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID Línea Investigación</label>
+                        <input class="form-control" type="number" @bind="campoLinea" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID Área Conocimiento</label>
+                        <input class="form-control" type="number" @bind="campoArea" />
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr><th>Línea Investigación</th><th>Área Conocimiento</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["linea_investigacion"]</td>
+                        <td>@reg["area_conocimiento"]</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, exito = false;
+    private string mensaje = string.Empty;
+    private int? campoLinea = null, campoArea = null;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("ac_linea");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        campoLinea = null; campoArea = null;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["linea_investigacion"] = campoLinea,
+            ["area_conocimiento"] = campoArea
+        };
+        var resultado = await Api.CrearAsync("ac_linea", datos);
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        int lin = Convert.ToInt32(reg["linea_investigacion"]);
+        int area = Convert.ToInt32(reg["area_conocimiento"]);
+        var respuesta = await Api.EliminarAsync("ac_linea", $"{lin}", $"{area}");
+        exito = respuesta.exito; mensaje = respuesta.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+}

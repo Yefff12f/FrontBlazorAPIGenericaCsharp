@@ -1,0 +1,139 @@
+@page "/participa-semilleros"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Participación en Semilleros</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Participación</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Nueva Participación en Semillero</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID Docente</label>
+                        <input class="form-control" type="number" @bind="campoDocente" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID Semillero</label>
+                        <input class="form-control" type="number" @bind="campoSemillero" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Rol</label>
+                        <input class="form-control" @bind="campoRol" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Inicio</label>
+                        <input class="form-control" type="date" @bind="campoFechaIni" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Fin</label>
+                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr><th>Docente</th><th>Semillero</th><th>Rol</th><th>Fecha Ini</th><th>Fecha Fin</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["docente"]</td>
+                        <td>@reg["semillero"]</td>
+                        <td>@reg["rol"]</td>
+                        <td>@reg["fecha_ini"]</td>
+                        <td>@reg["fecha_fin"]</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, exito = false;
+    private string mensaje = string.Empty, campoRol = string.Empty;
+    private int? campoDocente = null, campoSemillero = null;
+    private DateTime? campoFechaIni = null, campoFechaFin = null;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("participa_semillero");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        campoDocente = null; campoSemillero = null; campoRol = string.Empty;
+        campoFechaIni = null; campoFechaFin = null;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["docente"] = campoDocente,
+            ["semillero"] = campoSemillero,
+            ["rol"] = campoRol,
+            ["fecha_ini"] = campoFechaIni,
+            ["fecha_fin"] = campoFechaFin
+        };
+        var resultado = await Api.CrearAsync("participa_semillero", datos);
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        int doc = Convert.ToInt32(reg["docente"]);
+        int sem = Convert.ToInt32(reg["semillero"]);
+        var respuesta = await Api.EliminarAsync("participa_semillero", $"{doc}", $"{sem}");
+        exito = respuesta.exito; mensaje = respuesta.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+}

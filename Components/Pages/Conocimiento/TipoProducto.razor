@@ -1,0 +1,111 @@
+@page "/tipo_productos"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Tipo Producto</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar" : "Nuevo")</div>
+            <div class="card-body">
+                <div class="row">
+                    @if (editando)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
+                    <div class="col-md-3 mb-3">
+                        <input class="form-control" placeholder="Categoría" @bind="categoria" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <input class="form-control" placeholder="Clase" @bind="clase" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <input class="form-control" placeholder="Nombre" @bind="nombre" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <input class="form-control" placeholder="Tipología" @bind="tipologia" />
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    <table class="table">
+        <tbody>
+            @foreach (var reg in registros)
+            {
+                <tr>
+                    <td>@reg["id"]</td>
+                    <td>@reg["nombre"]</td>
+                    <td>
+                        <button @onclick="() => EditarRegistro(reg)">Editar</button>
+                        <button @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = "", campoId = "", categoria="", clase="", nombre="", tipologia="";
+
+    protected override async Task OnInitializedAsync() => registros = await Api.ListarAsync("tipo_producto");
+
+    void NuevoRegistro() { mostrarFormulario = true; editando = false; }
+
+    void EditarRegistro(Dictionary<string, object?> r)
+    {
+        editando = true; mostrarFormulario = true;
+        campoId = r["id"]?.ToString() ?? "";
+        nombre = r["nombre"]?.ToString() ?? "";
+    }
+
+    async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["categoria"]=categoria,
+            ["clase"]=clase,
+            ["nombre"]=nombre,
+            ["tipologia"]=tipologia
+        };
+
+        var res = editando
+            ? await Api.ActualizarAsync("tipo_producto","id",campoId,datos)
+            : await Api.CrearAsync("tipo_producto",datos);
+
+        mensaje = res.mensaje; exito = res.exito;
+        if (exito) { mostrarFormulario = false; registros = await Api.ListarAsync("tipo_producto"); }
+    }
+
+    async Task EliminarRegistro(Dictionary<string, object?> r)
+    {
+        var res = await Api.EliminarAsync("tipo_producto","id",r["id"]?.ToString() ?? "");
+        mensaje = res.mensaje; exito = res.exito;
+        if (exito) registros = await Api.ListarAsync("tipo_producto");
+    }
+
+    void Cancelar() => mostrarFormulario = false;
+}

@@ -1,0 +1,145 @@
+@page "/area-conocimiento"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Áreas de Conocimiento</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Área</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar Área" : "Nueva Área")</div>
+            <div class="card-body">
+                <div class="row">
+                    @if (editando)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Id</label>
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Gran Área</label>
+                        <input class="form-control" @bind="campoGranArea" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Área</label>
+                        <input class="form-control" @bind="campoArea" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Disciplina</label>
+                        <input class="form-control" @bind="campoDisciplina" />
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr><th>Id</th><th>Gran Área</th><th>Área</th><th>Disciplina</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["id"]</td>
+                        <td>@reg["gran_area"]</td>
+                        <td>@reg["area"]</td>
+                        <td>@reg["disciplina"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros en area_conocimiento.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty, campoId = string.Empty;
+    private string campoGranArea = string.Empty, campoArea = string.Empty, campoDisciplina = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("area_conocimiento");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false; campoId = string.Empty;
+        campoGranArea = string.Empty; campoArea = string.Empty; campoDisciplina = string.Empty;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        campoId = reg["id"]?.ToString() ?? "";
+        campoGranArea = reg["gran_area"]?.ToString() ?? "";
+        campoArea = reg["area"]?.ToString() ?? "";
+        campoDisciplina = reg["disciplina"]?.ToString() ?? "";
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["gran_area"] = campoGranArea,
+            ["area"] = campoArea,
+            ["disciplina"] = campoDisciplina
+        };
+        var resultado = editando
+            ? await Api.ActualizarAsync("area_conocimiento", "id", campoId, datos)
+            : await Api.CrearAsync("area_conocimiento", datos);
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        var resultado = await Api.EliminarAsync("area_conocimiento", "id", reg["id"]?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+}

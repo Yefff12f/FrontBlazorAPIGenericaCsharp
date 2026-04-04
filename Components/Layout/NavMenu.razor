@@ -1,0 +1,122 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">CRUD INVESTIGACION</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        @* ── INVESTIGACIÓN (gris) ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">INVESTIGACIÓN</span>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/grupos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Líneas
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/semilleros">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semilleros
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/semillero-lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semillero — Línea
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/participa-semilleros">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Semillero
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/participa-grupos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Grupo
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/grupo-lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo — Línea
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/ac-lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Línea
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/as-lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AS — Línea
+            </NavLink>
+        </div>
+
+        @* ── CONOCIMIENTO (azul) ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">CONOCIMIENTO</span>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/area-conocimiento">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Área Conocimiento
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/area-aplicacion">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Área Aplicación
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/objetivos-ds">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Objetivos DS
+            </NavLink>
+        </div>
+
+        @* ── PROYECTO (verde) ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">PROYECTO</span>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/ac-proyectos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Proyecto
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/desarrolla">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Desarrolla
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/aliado-proyectos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Aliado — Proyecto
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/aa-proyectos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — Proyecto
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/terminos-clave">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Términos Clave
+            </NavLink>
+        </div>
+
+    </nav>
+</div>
