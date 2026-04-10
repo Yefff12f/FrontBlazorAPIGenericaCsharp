@@ -1,9 +1,9 @@
-@page "/proyectos-linea"
+@page "/intereses-futuros"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Proyecto — Línea de Investigación</h3>
+    <h3>Intereses Futuros</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,22 +15,22 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Interés</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">Nueva Relación Proyecto — Línea</div>
+            <div class="card-header">Nuevo Interés Futuro</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Proyecto</label>
-                        <input class="form-control" type="number" @bind="campoProyecto" />
+                        <label class="form-label">Docente (Cédula)</label>
+                        <input class="form-control" type="number" @bind="campoDocente" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Línea Investigación</label>
-                        <input class="form-control" type="number" @bind="campoLinea" />
+                        <label class="form-label">Término Clave</label>
+                        <input class="form-control" @bind="campoTermino" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -50,14 +50,14 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Proyecto</th><th>Línea Investigación</th><th>Acciones</th></tr>
+                <tr><th>Docente</th><th>Término Clave</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["proyecto"]</td>
-                        <td>@reg["linea_investigacion"]</td>
+                        <td>@reg["docente"]</td>
+                        <td>@reg["termino_clave"]</td>
                         <td>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
@@ -69,28 +69,28 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en proyecto_linea.</div>
+        <div class="alert alert-warning">No se encontraron registros en intereses_futuros.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true, mostrarFormulario = false, exito = false;
-    private string mensaje = string.Empty;
-    private int? campoProyecto = null, campoLinea = null;
+    private string mensaje = string.Empty, campoTermino = string.Empty;
+    private int? campoDocente = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("proyecto_linea");
+        registros = await Api.ListarAsync("intereses_futuros");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        campoProyecto = null; campoLinea = null;
+        campoDocente = null; campoTermino = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -98,19 +98,19 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["proyecto"] = campoProyecto,
-            ["linea_investigacion"] = campoLinea
+            ["docente"] = campoDocente,
+            ["termino_clave"] = campoTermino
         };
-        var resultado = await Api.CrearAsync("proyecto_linea", datos);
+        var resultado = await Api.CrearAsync("intereses_futuros", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        int p = Convert.ToInt32(reg["proyecto"]);
-        int l = Convert.ToInt32(reg["linea_investigacion"]);
-        var respuesta = await Api.EliminarAsync("proyecto_linea", $"{p}", $"{l}");
+        int d = Convert.ToInt32(reg["docente"]);
+        string t = reg["termino_clave"]?.ToString() ?? "";
+        var respuesta = await Api.EliminarAsync("intereses_futuros", $"{d}", t);
         exito = respuesta.exito; mensaje = respuesta.mensaje;
         if (exito) await CargarRegistros();
     }

@@ -1,9 +1,9 @@
-@page "/alianzas"
+@page "/evaluaciones-docente"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Alianzas</h3>
+    <h3>Evaluaciones Docente</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,34 +15,33 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Alianza</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Evaluación</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Alianza" : "Nueva Alianza")</div>
+            <div class="card-header">@(editando ? "Editar Evaluación" : "Nueva Evaluación")</div>
             <div class="card-body">
                 <div class="row">
+                    @if (editando)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Id</label>
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Aliado</label>
-                        <input class="form-control" type="number" @bind="campoAliado" disabled="@editando" />
+                        <label class="form-label">Calificación</label>
+                        <input class="form-control" type="number" step="0.01" @bind="campoCalificacion" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Departamento</label>
-                        <input class="form-control" type="number" @bind="campoDepartamento" disabled="@editando" />
+                        <label class="form-label">Semestre</label>
+                        <input class="form-control" @bind="campoSemestre" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Docente</label>
+                        <label class="form-label">Docente (Cédula)</label>
                         <input class="form-control" type="number" @bind="campoDocente" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha Inicio</label>
-                        <input class="form-control" type="date" @bind="campoFechaInicio" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha Fin</label>
-                        <input class="form-control" type="date" @bind="campoFechaFin" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -62,17 +61,16 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Aliado</th><th>Departamento</th><th>Docente</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Acciones</th></tr>
+                <tr><th>Id</th><th>Calificación</th><th>Semestre</th><th>Docente</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["aliado"]</td>
-                        <td>@reg["departamento"]</td>
+                        <td>@reg["id"]</td>
+                        <td>@reg["calificacion"]</td>
+                        <td>@reg["semestre"]</td>
                         <td>@reg["docente"]</td>
-                        <td>@reg["fecha_inicio"]</td>
-                        <td>@reg["fecha_fin"]</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -85,41 +83,40 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en alianza.</div>
+        <div class="alert alert-warning">No se encontraron registros en evaluacion_docente.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
-    private string mensaje = string.Empty;
-    private int? campoAliado = null, campoDepartamento = null, campoDocente = null;
-    private DateTime? campoFechaInicio = null, campoFechaFin = null;
+    private string mensaje = string.Empty, campoId = string.Empty, campoSemestre = string.Empty;
+    private float? campoCalificacion = null;
+    private int? campoDocente = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("alianza");
+        registros = await Api.ListarAsync("evaluacion_docente");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        editando = false; campoAliado = null; campoDepartamento = null;
-        campoDocente = null; campoFechaInicio = null; campoFechaFin = null;
+        editando = false; campoId = string.Empty;
+        campoCalificacion = null; campoSemestre = string.Empty; campoDocente = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        if (int.TryParse(reg["aliado"]?.ToString(), out int a)) campoAliado = a;
-        if (int.TryParse(reg["departamento"]?.ToString(), out int d)) campoDepartamento = d;
-        if (int.TryParse(reg["docente"]?.ToString(), out int doc)) campoDocente = doc;
-        if (DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fi)) campoFechaInicio = fi;
-        if (DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime ff)) campoFechaFin = ff;
+        campoId = reg["id"]?.ToString() ?? "";
+        if (float.TryParse(reg["calificacion"]?.ToString(), out float cal)) campoCalificacion = cal;
+        campoSemestre = reg["semestre"]?.ToString() ?? "";
+        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -127,27 +124,21 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["aliado"] = campoAliado, ["departamento"] = campoDepartamento,
-            ["docente"] = campoDocente, ["fecha_inicio"] = campoFechaInicio,
-            ["fecha_fin"] = campoFechaFin
+            ["calificacion"] = campoCalificacion,
+            ["semestre"] = campoSemestre,
+            ["docente"] = campoDocente
         };
-
-        (bool exito, string mensaje) resultado;
-        if (editando)
-            resultado = await Api.ActualizarAsync("alianza", $"{campoAliado}", $"{campoDepartamento}", datos);
-        else
-            resultado = await Api.CrearAsync("alianza", datos);
-
+        var resultado = editando
+            ? await Api.ActualizarAsync("evaluacion_docente", "id", campoId, datos)
+            : await Api.CrearAsync("evaluacion_docente", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        int a = Convert.ToInt32(reg["aliado"]);
-        int d = Convert.ToInt32(reg["departamento"]);
-        var respuesta = await Api.EliminarAsync("alianza", $"{a}", $"{d}");
-        exito = respuesta.exito; mensaje = respuesta.mensaje;
+        var resultado = await Api.EliminarAsync("evaluacion_docente", "id", reg["id"]?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }
 

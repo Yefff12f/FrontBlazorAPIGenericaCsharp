@@ -1,9 +1,9 @@
-@page "/palabrasclave"
+@page "/palabras-clave"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Palabras Clave</h3>
+    <h3>Palabras Clave — Proyecto</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -21,19 +21,16 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Palabra Clave" : "Nueva Palabra Clave")</div>
+            <div class="card-header">Nueva Palabra Clave — Proyecto</div>
             <div class="card-body">
                 <div class="row">
-                    @if (editando)
-                    {
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Id</label>
-                            <input class="form-control" @bind="campoId" disabled />
-                        </div>
-                    }
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" />
+                        <label class="form-label">ID Proyecto</label>
+                        <input class="form-control" type="number" @bind="campoProyecto" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Término Clave</label>
+                        <input class="form-control" @bind="campoTermino" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -53,18 +50,15 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th><th>Nombre</th><th>Acciones</th>
-                </tr>
+                <tr><th>Proyecto</th><th>Término Clave</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
+                        <td>@reg["proyecto"]</td>
+                        <td>@reg["termino_clave"]</td>
                         <td>
-                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
                     </tr>
@@ -75,14 +69,15 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en Palabras Clave.</div>
+        <div class="alert alert-warning">No se encontraron registros en palabras_clave.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
-    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
-    private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
+    private bool cargando = true, mostrarFormulario = false, exito = false;
+    private string mensaje = string.Empty, campoTermino = string.Empty;
+    private int? campoProyecto = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
@@ -95,34 +90,28 @@
 
     private void NuevoRegistro()
     {
-        editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        mostrarFormulario = true; mensaje = string.Empty;
-    }
-
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
-        editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
+        campoProyecto = null; campoTermino = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
     private async Task GuardarRegistro()
     {
-        var datos = new Dictionary<string, object?> { ["nombre"] = campoNombre };
-
-        var resultado = editando
-            ? await Api.ActualizarAsync("palabras_clave", "id", campoId, datos)
-            : await Api.CrearAsync("palabras_clave", datos);
-
+        var datos = new Dictionary<string, object?>
+        {
+            ["proyecto"] = campoProyecto,
+            ["termino_clave"] = campoTermino
+        };
+        var resultado = await Api.CrearAsync("palabras_clave", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("palabras_clave", "id", reg["id"]?.ToString() ?? "");
-        exito = resultado.exito; mensaje = resultado.mensaje;
+        int p = Convert.ToInt32(reg["proyecto"]);
+        string t = reg["termino_clave"]?.ToString() ?? "";
+        var respuesta = await Api.EliminarAsync("palabras_clave", $"{p}", t);
+        exito = respuesta.exito; mensaje = respuesta.mensaje;
         if (exito) await CargarRegistros();
     }
 

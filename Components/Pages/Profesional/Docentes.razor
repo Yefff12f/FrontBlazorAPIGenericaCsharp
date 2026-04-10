@@ -1,0 +1,219 @@
+@page "/docentes"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Docentes</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Docente</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar Docente" : "Nuevo Docente")</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cédula</label>
+                        <input class="form-control" type="number" @bind="campoCedula" disabled="@editando" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombres</label>
+                        <input class="form-control" @bind="campoNombres" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Apellidos</label>
+                        <input class="form-control" @bind="campoApellidos" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Género</label>
+                        <input class="form-control" @bind="campoGenero" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cargo</label>
+                        <input class="form-control" @bind="campoCargo" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Nacimiento</label>
+                        <input class="form-control" type="date" @bind="campoFechaNacimiento" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Correo</label>
+                        <input class="form-control" @bind="campoCorreo" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input class="form-control" @bind="campoTelefono" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">URL CvLAC</label>
+                        <input class="form-control" @bind="campoUrlCvlac" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Escalafón</label>
+                        <input class="form-control" @bind="campoEscalafon" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cat. Minciencias</label>
+                        <input class="form-control" @bind="campoCatMinciencia" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Conv. Minciencias</label>
+                        <input class="form-control" @bind="campoConvMinciencia" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nacionalidad</label>
+                        <input class="form-control" @bind="campoNacionalidad" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Línea Inv. Principal (ID)</label>
+                        <input class="form-control" type="number" @bind="campoLineaInv" />
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Perfil</label>
+                        <textarea class="form-control" rows="3" @bind="campoPerfil"></textarea>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Cargo</th>
+                    <th>Correo</th><th>Teléfono</th><th>Nacionalidad</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["cedula"]</td>
+                        <td>@reg["nombres"]</td>
+                        <td>@reg["apellidos"]</td>
+                        <td>@reg["cargo"]</td>
+                        <td>@reg["correo"]</td>
+                        <td>@reg["telefono"]</td>
+                        <td>@reg["nacionalidad"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros en docente.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty;
+    private int? campoCedula = null, campoLineaInv = null;
+    private string campoNombres = string.Empty, campoApellidos = string.Empty;
+    private string campoGenero = string.Empty, campoCargo = string.Empty;
+    private string campoCorreo = string.Empty, campoTelefono = string.Empty;
+    private string campoUrlCvlac = string.Empty, campoEscalafon = string.Empty;
+    private string campoCatMinciencia = string.Empty, campoConvMinciencia = string.Empty;
+    private string campoNacionalidad = string.Empty, campoPerfil = string.Empty;
+    private DateTime? campoFechaNacimiento = null;
+
+    protected override async Task OnInitializedAsync() => await CargarRegistros();
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("docente");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false; campoCedula = null; campoNombres = string.Empty;
+        campoApellidos = string.Empty; campoGenero = string.Empty; campoCargo = string.Empty;
+        campoFechaNacimiento = null; campoCorreo = string.Empty; campoTelefono = string.Empty;
+        campoUrlCvlac = string.Empty; campoEscalafon = string.Empty; campoPerfil = string.Empty;
+        campoCatMinciencia = string.Empty; campoConvMinciencia = string.Empty;
+        campoNacionalidad = string.Empty; campoLineaInv = null;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        if (int.TryParse(reg["cedula"]?.ToString(), out int c)) campoCedula = c;
+        campoNombres = reg["nombres"]?.ToString() ?? "";
+        campoApellidos = reg["apellidos"]?.ToString() ?? "";
+        campoGenero = reg["genero"]?.ToString() ?? "";
+        campoCargo = reg["cargo"]?.ToString() ?? "";
+        if (DateTime.TryParse(reg["fecha_nacimiento"]?.ToString(), out DateTime fn)) campoFechaNacimiento = fn;
+        campoCorreo = reg["correo"]?.ToString() ?? "";
+        campoTelefono = reg["telefono"]?.ToString() ?? "";
+        campoUrlCvlac = reg["url_cvlac"]?.ToString() ?? "";
+        campoEscalafon = reg["escalafon"]?.ToString() ?? "";
+        campoPerfil = reg["perfil"]?.ToString() ?? "";
+        campoCatMinciencia = reg["cat_minciencia"]?.ToString() ?? "";
+        campoConvMinciencia = reg["conv_minciencia"]?.ToString() ?? "";
+        campoNacionalidad = reg["nacionalidad"]?.ToString() ?? "";
+        if (int.TryParse(reg["linea_investigacion_principal"]?.ToString(), out int li)) campoLineaInv = li;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["cedula"] = campoCedula, ["nombres"] = campoNombres,
+            ["apellidos"] = campoApellidos, ["genero"] = campoGenero,
+            ["cargo"] = campoCargo, ["fecha_nacimiento"] = campoFechaNacimiento,
+            ["correo"] = campoCorreo, ["telefono"] = campoTelefono,
+            ["url_cvlac"] = campoUrlCvlac, ["escalafon"] = campoEscalafon,
+            ["perfil"] = campoPerfil, ["cat_minciencia"] = campoCatMinciencia,
+            ["conv_minciencia"] = campoConvMinciencia, ["nacionalidad"] = campoNacionalidad,
+            ["linea_investigacion_principal"] = campoLineaInv
+        };
+        var resultado = editando
+            ? await Api.ActualizarAsync("docente", "cedula", campoCedula.ToString()!, datos)
+            : await Api.CrearAsync("docente", datos);
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        var resultado = await Api.EliminarAsync("docente", "cedula", reg["cedula"]?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+}

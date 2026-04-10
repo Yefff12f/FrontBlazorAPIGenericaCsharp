@@ -1,9 +1,9 @@
-@page "/ods"
+@page "/programas-ci"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>ODS</h3>
+    <h3>Programa — Car. Innovación</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,25 +15,22 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo ODS</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar ODS" : "Nuevo ODS")</div>
+            <div class="card-header">Nueva Relación Programa — Car. Innovación</div>
             <div class="card-body">
                 <div class="row">
-                    @if (editando)
-                    {
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Id</label>
-                            <input class="form-control" @bind="campoId" disabled />
-                        </div>
-                    }
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" />
+                        <label class="form-label">ID Programa</label>
+                        <input class="form-control" type="number" @bind="campoPrograma" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID Car. Innovación</label>
+                        <input class="form-control" type="number" @bind="campoCi" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -53,18 +50,15 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th><th>Nombre</th><th>Acciones</th>
-                </tr>
+                <tr><th>Programa</th><th>Car. Innovación</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
+                        <td>@reg["programa"]</td>
+                        <td>@reg["car_innovacion"]</td>
                         <td>
-                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
                     </tr>
@@ -75,54 +69,49 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en ODS.</div>
+        <div class="alert alert-warning">No se encontraron registros en programa_ci.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
-    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
-    private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
+    private bool cargando = true, mostrarFormulario = false, exito = false;
+    private string mensaje = string.Empty;
+    private int? campoPrograma = null, campoCi = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("ods");
+        registros = await Api.ListarAsync("programa_ci");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        mostrarFormulario = true; mensaje = string.Empty;
-    }
-
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
-        editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
+        campoPrograma = null; campoCi = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
     private async Task GuardarRegistro()
     {
-        var datos = new Dictionary<string, object?> { ["nombre"] = campoNombre };
-
-        var resultado = editando
-            ? await Api.ActualizarAsync("ods", "id", campoId, datos)
-            : await Api.CrearAsync("ods", datos);
-
+        var datos = new Dictionary<string, object?>
+        {
+            ["programa"] = campoPrograma,
+            ["car_innovacion"] = campoCi
+        };
+        var resultado = await Api.CrearAsync("programa_ci", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("ods", "id", reg["id"]?.ToString() ?? "");
-        exito = resultado.exito; mensaje = resultado.mensaje;
+        int p = Convert.ToInt32(reg["programa"]);
+        int ci = Convert.ToInt32(reg["car_innovacion"]);
+        var respuesta = await Api.EliminarAsync("programa_ci", $"{p}", $"{ci}");
+        exito = respuesta.exito; mensaje = respuesta.mensaje;
         if (exito) await CargarRegistros();
     }
 

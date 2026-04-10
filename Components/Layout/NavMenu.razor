@@ -1,6 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">CRUD INVESTIGACION</a>
+        <a class="navbar-brand" href="">CRUD MODELO RELACIONAL</a>
     </div>
 </div>
 
@@ -15,11 +17,10 @@
             </NavLink>
         </div>
 
-        @* ── INVESTIGACIÓN (gris) ── *@
+        @* ── INVESTIGACIÓN ── *@
         <div class="nav-item px-3 mt-2">
-            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">INVESTIGACIÓN</span>
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">INVESTIGACIÓN</span>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/grupos">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupos
@@ -65,12 +66,16 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AS — Línea
             </NavLink>
         </div>
-
-        @* ── CONOCIMIENTO (azul) ── *@
-        <div class="nav-item px-3 mt-2">
-            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">CONOCIMIENTO</span>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/ods-lineas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Línea
+            </NavLink>
         </div>
 
+        @* ── CARACTERIZACIÓN ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">CARACTERIZACIÓN</span>
+        </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/area-conocimiento">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Área Conocimiento
@@ -87,11 +92,10 @@
             </NavLink>
         </div>
 
-        @* ── PROYECTO (verde) ── *@
+        @* ── PROYECTO ── *@
         <div class="nav-item px-3 mt-2">
-            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem;">PROYECTO</span>
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">PROYECTO</span>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/ac-proyectos">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Proyecto
@@ -115,6 +119,191 @@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/terminos-clave">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Términos Clave
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/palabras-clave">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Palabras Clave
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/proyectos-linea">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto — Línea
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/ods-proyectos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Proyecto
+            </NavLink>
+        </div>
+
+        @* ── CURRICULAR ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">CURRICULAR</span>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/universidades">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Universidades
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/facultades">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Facultades
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/programas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programas
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/acreditaciones">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Acreditaciones
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/premios">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Premios
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/aspectos-normativos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Aspectos Normativos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/car-innovaciones">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Car. Innovación
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/practicas-estrategias">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Prácticas Estrategias
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/enfoques">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enfoques
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/aliados">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Aliados
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/pasantias">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Pasantías
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/registros-calificados">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Registros Calificados
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/actvs-academicas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Actvs Académicas
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/alianzas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Alianzas
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/docentes-departamentos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Docente — Depto
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/programas-ci">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — CI
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/an-programas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AN — Programa
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/programas-ac">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — AC
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/programas-pe">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — PE
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/enfoques-rc">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enfoque — RC
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/aa-rcs">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — RC
+            </NavLink>
+        </div>
+
+        @* ── PROFESIONAL ── *@
+        <div class="nav-item px-3 mt-2">
+            <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">PROFESIONAL</span>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/docentes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Docentes
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/redes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Redes
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/reconocimientos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Reconocimientos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/experiecia">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Experiencia
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/evaluaciones-docente">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Evaluaciones
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/estudios-realizados">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Estudios Realizados
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/red-docentes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Red — Docente
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/becas">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Becas
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/apoyos-profesoral">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Apoyo Profesoral
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/estudios-ac">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Estudio — AC
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/intereses-futuros">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Intereses Futuros
             </NavLink>
         </div>
 

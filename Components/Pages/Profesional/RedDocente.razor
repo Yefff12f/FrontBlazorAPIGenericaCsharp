@@ -1,9 +1,9 @@
-@page "/alianzas"
+@page "/red-docentes"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Alianzas</h3>
+    <h3>Red — Docente</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,26 +15,22 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Alianza</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Alianza" : "Nueva Alianza")</div>
+            <div class="card-header">@(editando ? "Editar Relación" : "Nueva Relación")</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Aliado</label>
-                        <input class="form-control" type="number" @bind="campoAliado" disabled="@editando" />
+                        <label class="form-label">ID Red</label>
+                        <input class="form-control" type="number" @bind="campoRed" disabled="@editando" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Departamento</label>
-                        <input class="form-control" type="number" @bind="campoDepartamento" disabled="@editando" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Docente</label>
-                        <input class="form-control" type="number" @bind="campoDocente" />
+                        <label class="form-label">Docente (Cédula)</label>
+                        <input class="form-control" type="number" @bind="campoDocente" disabled="@editando" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Inicio</label>
@@ -43,6 +39,10 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Fin</label>
                         <input class="form-control" type="date" @bind="campoFechaFin" />
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Act. Destacadas</label>
+                        <textarea class="form-control" rows="3" @bind="campoActDestacadas"></textarea>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -62,14 +62,13 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Aliado</th><th>Departamento</th><th>Docente</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Acciones</th></tr>
+                <tr><th>Red</th><th>Docente</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["aliado"]</td>
-                        <td>@reg["departamento"]</td>
+                        <td>@reg["red"]</td>
                         <td>@reg["docente"]</td>
                         <td>@reg["fecha_inicio"]</td>
                         <td>@reg["fecha_fin"]</td>
@@ -85,15 +84,15 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en alianza.</div>
+        <div class="alert alert-warning">No se encontraron registros en red_docente.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
-    private string mensaje = string.Empty;
-    private int? campoAliado = null, campoDepartamento = null, campoDocente = null;
+    private string mensaje = string.Empty, campoActDestacadas = string.Empty;
+    private int? campoRed = null, campoDocente = null;
     private DateTime? campoFechaInicio = null, campoFechaFin = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
@@ -101,25 +100,25 @@
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("alianza");
+        registros = await Api.ListarAsync("red_docente");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        editando = false; campoAliado = null; campoDepartamento = null;
-        campoDocente = null; campoFechaInicio = null; campoFechaFin = null;
+        editando = false; campoRed = null; campoDocente = null;
+        campoFechaInicio = null; campoFechaFin = null; campoActDestacadas = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        if (int.TryParse(reg["aliado"]?.ToString(), out int a)) campoAliado = a;
-        if (int.TryParse(reg["departamento"]?.ToString(), out int d)) campoDepartamento = d;
-        if (int.TryParse(reg["docente"]?.ToString(), out int doc)) campoDocente = doc;
+        if (int.TryParse(reg["red"]?.ToString(), out int r)) campoRed = r;
+        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
         if (DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fi)) campoFechaInicio = fi;
         if (DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime ff)) campoFechaFin = ff;
+        campoActDestacadas = reg["act_destacadas"]?.ToString() ?? "";
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -127,26 +126,24 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["aliado"] = campoAliado, ["departamento"] = campoDepartamento,
-            ["docente"] = campoDocente, ["fecha_inicio"] = campoFechaInicio,
-            ["fecha_fin"] = campoFechaFin
+            ["red"] = campoRed, ["docente"] = campoDocente,
+            ["fecha_inicio"] = campoFechaInicio, ["fecha_fin"] = campoFechaFin,
+            ["act_destacadas"] = campoActDestacadas
         };
-
         (bool exito, string mensaje) resultado;
         if (editando)
-            resultado = await Api.ActualizarAsync("alianza", $"{campoAliado}", $"{campoDepartamento}", datos);
+            resultado = await Api.ActualizarAsync("red_docente", $"{campoRed}", $"{campoDocente}", datos);
         else
-            resultado = await Api.CrearAsync("alianza", datos);
-
+            resultado = await Api.CrearAsync("red_docente", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        int a = Convert.ToInt32(reg["aliado"]);
-        int d = Convert.ToInt32(reg["departamento"]);
-        var respuesta = await Api.EliminarAsync("alianza", $"{a}", $"{d}");
+        int r = Convert.ToInt32(reg["red"]);
+        int d = Convert.ToInt32(reg["docente"]);
+        var respuesta = await Api.EliminarAsync("red_docente", $"{r}", $"{d}");
         exito = respuesta.exito; mensaje = respuesta.mensaje;
         if (exito) await CargarRegistros();
     }

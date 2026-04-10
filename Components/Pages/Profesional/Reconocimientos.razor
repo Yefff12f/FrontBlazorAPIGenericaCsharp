@@ -1,9 +1,9 @@
-@page "/premios"
+@page "/reconocimientos"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Premios</h3>
+    <h3>Reconocimientos</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,13 +15,13 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Premio</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Reconocimiento</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Premio" : "Nuevo Premio")</div>
+            <div class="card-header">@(editando ? "Editar Reconocimiento" : "Nuevo Reconocimiento")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -32,30 +32,28 @@
                         </div>
                     }
                     <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo</label>
+                        <input class="form-control" @bind="campoTipo" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha</label>
+                        <input class="form-control" type="date" @bind="campoFecha" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Institución</label>
+                        <input class="form-control" @bind="campoInstitucion" />
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Nombre</label>
                         <input class="form-control" @bind="campoNombre" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Descripción</label>
-                        <input class="form-control" @bind="campoDescripcion" />
+                        <label class="form-label">Ámbito</label>
+                        <input class="form-control" @bind="campoAmbito" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Entidad Otorgante</label>
-                        <input class="form-control" @bind="campoEntidad" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Valor</label>
-                        <input class="form-control" type="number" step="0.01" @bind="campoValor" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">País</label>
-                        <input class="form-control" @bind="campoPais" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha</label>
-                            <input class="form-control" type="date" 
-                              value="@campoFecha?.ToString("yyyy-MM-dd")"
-                          @onchange="e => campoFecha = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                        <label class="form-label">Docente (Cédula)</label>
+                        <input class="form-control" type="number" @bind="campoDocente" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -75,22 +73,19 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th><th>Nombre</th><th>Descripción</th><th>Entidad</th>
-                    <th>Valor</th><th>País</th><th>Fecha</th><th>Acciones</th>
-                </tr>
+                <tr><th>Id</th><th>Tipo</th><th>Fecha</th><th>Institución</th><th>Nombre</th><th>Ámbito</th><th>Docente</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
                         <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["descripcion"]</td>
-                        <td>@reg["entidad_otorgante"]</td>
-                        <td>@reg["valor"]</td>
-                        <td>@reg["pais"]</td>
+                        <td>@reg["tipo"]</td>
                         <td>@reg["fecha"]</td>
+                        <td>@reg["institucion"]</td>
+                        <td>@reg["nombre"]</td>
+                        <td>@reg["ambito"]</td>
+                        <td>@reg["docente"]</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -103,7 +98,7 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en premio.</div>
+        <div class="alert alert-warning">No se encontraron registros en reconocimiento.</div>
     }
 </div>
 
@@ -111,25 +106,25 @@
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
-    private string campoNombre = string.Empty, campoDescripcion = string.Empty;
-    private string campoEntidad = string.Empty, campoPais = string.Empty;
-    private double? campoValor = null;
+    private string campoTipo = string.Empty, campoInstitucion = string.Empty;
+    private string campoNombre = string.Empty, campoAmbito = string.Empty;
     private DateTime? campoFecha = null;
+    private int? campoDocente = null;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("premio");
+        registros = await Api.ListarAsync("reconocimiento");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        campoDescripcion = string.Empty; campoEntidad = string.Empty;
-        campoPais = string.Empty; campoValor = null; campoFecha = null;
+        editando = false; campoId = string.Empty; campoTipo = string.Empty;
+        campoFecha = null; campoInstitucion = string.Empty;
+        campoNombre = string.Empty; campoAmbito = string.Empty; campoDocente = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -137,12 +132,12 @@
     {
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
-        campoDescripcion = reg["descripcion"]?.ToString() ?? "";
-        campoEntidad = reg["entidad_otorgante"]?.ToString() ?? "";
-        campoPais = reg["pais"]?.ToString() ?? "";
-        if (double.TryParse(reg["valor"]?.ToString(), out double v)) campoValor = v;
+        campoTipo = reg["tipo"]?.ToString() ?? "";
         if (DateTime.TryParse(reg["fecha"]?.ToString(), out DateTime f)) campoFecha = f;
+        campoInstitucion = reg["institucion"]?.ToString() ?? "";
+        campoNombre = reg["nombre"]?.ToString() ?? "";
+        campoAmbito = reg["ambito"]?.ToString() ?? "";
+        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -150,20 +145,20 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["descripcion"] = campoDescripcion,
-            ["entidad_otorgante"] = campoEntidad, ["valor"] = campoValor,
-            ["pais"] = campoPais, ["fecha"] = campoFecha
+            ["tipo"] = campoTipo, ["fecha"] = campoFecha,
+            ["institucion"] = campoInstitucion, ["nombre"] = campoNombre,
+            ["ambito"] = campoAmbito, ["docente"] = campoDocente
         };
         var resultado = editando
-            ? await Api.ActualizarAsync("premio", "id", campoId, datos)
-            : await Api.CrearAsync("premio", datos);
+            ? await Api.ActualizarAsync("reconocimiento", "id", campoId, datos)
+            : await Api.CrearAsync("reconocimiento", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("premio", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("reconocimiento", "id", reg["id"]?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }
