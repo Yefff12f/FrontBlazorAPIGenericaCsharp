@@ -25,12 +25,24 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Programa</label>
-                        <input class="form-control" type="number" @bind="campoPrograma" />
+                        <label class="form-label">Programa</label>
+                        <select class="form-select" @bind="campoPrograma">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var p in programas)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Car. Innovación</label>
-                        <input class="form-control" type="number" @bind="campoCi" />
+                        <label class="form-label">Car. Innovación</label>
+                        <select class="form-select" @bind="campoCi">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var c in carInnovaciones)
+                            {
+                                <option value="@c["id"]">@c["nombre"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -56,8 +68,8 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["programa"]</td>
-                        <td>@reg["car_innovacion"]</td>
+                        <td>@ObtenerNombre(programas, reg["programa"], "id", "nombre")</td>
+                        <td>@ObtenerNombre(carInnovaciones, reg["car_innovacion"], "id", "nombre")</td>
                         <td>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
@@ -75,11 +87,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> programas = new();       // ✅ una sola vez
+    private List<Dictionary<string, object?>> carInnovaciones = new(); // ✅ una sola vez
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoPrograma = null, campoCi = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        programas = await Api.ListarAsync("programa");
+        carInnovaciones = await Api.ListarAsync("car_innovacion");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -116,4 +135,11 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
 }

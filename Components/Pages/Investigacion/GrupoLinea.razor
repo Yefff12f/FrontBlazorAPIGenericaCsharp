@@ -25,12 +25,24 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Grupo Investigación</label>
-                        <input class="form-control" type="number" @bind="campoGrupo" />
+                        <label class="form-label">Grupo Investigación</label>
+                        <select class="form-select" @bind="campoGrupo">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var g in grupos)
+                            {
+                                <option value="@g["id"]">@g["nombre"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Línea Investigación</label>
-                        <input class="form-control" type="number" @bind="campoLinea" />
+                        <label class="form-label">Línea Investigación</label>
+                        <select class="form-select" @bind="campoLinea">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -50,14 +62,14 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Grupo Investigación</th><th>Línea Investigación</th><th>Acciones</th></tr>
+                <tr><th>Grupo</th><th>Línea</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["grupo_investigacion"]</td>
-                        <td>@reg["linea_investigacion"]</td>
+                        <td>@ObtenerNombre(grupos, reg["grupo_investigacion"], "id", "nombre")</td>
+                        <td>@ObtenerNombre(lineas, reg["linea_investigacion"], "id", "nombre")</td>
                         <td>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
@@ -75,11 +87,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> grupos = new();
+    private List<Dictionary<string, object?>> lineas = new();
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoGrupo = null, campoLinea = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        grupos = await Api.ListarAsync("grupo_investigacion");
+        lineas = await Api.ListarAsync("linea_investigacion");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -116,4 +135,11 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
 }

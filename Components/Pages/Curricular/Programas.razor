@@ -1,9 +1,9 @@
-@page "/premios"
+@page "/programas"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Premios</h3>
+    <h3>Programas</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,13 +15,13 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Premio</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Programa</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Premio" : "Nuevo Premio")</div>
+            <div class="card-header">@(editando ? "Editar Programa" : "Nuevo Programa")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -36,34 +36,44 @@
                         <input class="form-control" @bind="campoNombre" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Descripción</label>
-                        <input class="form-control" @bind="campoDescripcion" />
+                        <label class="form-label">Tipo</label>
+                        <input class="form-control" @bind="campoTipo" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Entidad Otorgante</label>
-                        <input class="form-control" @bind="campoEntidad" />
+                        <label class="form-label">Fecha Creación</label>
+                        <input class="form-control" type="date"
+                            value="@campoFechaCreacion?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaCreacion = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Valor</label>
-                        <input class="form-control" type="number" step="0.01" @bind="campoValor" />
+                        <label class="form-label">Num Créditos</label>
+                        <input class="form-control" type="number" @bind="campoNumCreditos" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Cant Semestres</label>
+                        <input class="form-control" type="number" @bind="campoCantSemestres" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Actualización</label>
+                        <input class="form-control" type="date"
+                            value="@campoFechaActualizacion?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaActualizacion = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">País</label>
                         <input class="form-control" @bind="campoPais" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input class="form-control" type="date"
-                            value="@campoFecha?.ToString("yyyy-MM-dd")"
-                            @onchange="e => campoFecha = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                        <label class="form-label">Ciudad</label>
+                        <input class="form-control" @bind="campoCiudad" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Programa</label>
-                        <select class="form-select" @bind="campoPrograma">
+                        <label class="form-label">Facultad</label>
+                        <select class="form-select" @bind="campoFacultad">
                             <option value="">-- Seleccione --</option>
-                            @foreach (var p in programas)
+                            @foreach (var f in facultades)
                             {
-                                <option value="@p["id"]">@p["nombre"]</option>
+                                <option value="@f["id"]">@f["nombre"]</option>
                             }
                         </select>
                     </div>
@@ -85,7 +95,7 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Id</th><th>Nombre</th><th>Entidad</th><th>Valor</th><th>País</th><th>Fecha</th><th>Programa</th><th>Acciones</th></tr>
+                <tr><th>Id</th><th>Nombre</th><th>Tipo</th><th>Créditos</th><th>Semestres</th><th>Facultad</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
@@ -93,11 +103,10 @@
                     <tr>
                         <td>@reg["id"]</td>
                         <td>@reg["nombre"]</td>
-                        <td>@reg["entidad_otorgante"]</td>
-                        <td>@reg["valor"]</td>
-                        <td>@reg["pais"]</td>
-                        <td>@reg["fecha"]</td>
-                        <td>@ObtenerNombre(programas, reg["programa"], "id", "nombre")</td>
+                        <td>@reg["tipo"]</td>
+                        <td>@reg["num_creditos"]</td>
+                        <td>@reg["cant_semestres"]</td>
+                        <td>@ObtenerNombre(facultades, reg["facultad"], "id", "nombre")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -110,39 +119,39 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en premio.</div>
+        <div class="alert alert-warning">No se encontraron registros en programa.</div>
     }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
-    private List<Dictionary<string, object?>> programas = new();
+    private List<Dictionary<string, object?>> facultades = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
-    private string campoNombre = string.Empty, campoDescripcion = string.Empty;
-    private string campoEntidad = string.Empty, campoPais = string.Empty;
-    private double? campoValor = null;
-    private DateTime? campoFecha = null;
-    private int? campoPrograma = null;
+    private string campoNombre = string.Empty, campoTipo = string.Empty;
+    private string campoPais = string.Empty, campoCiudad = string.Empty;
+    private DateTime? campoFechaCreacion = null, campoFechaActualizacion = null;
+    private int? campoNumCreditos = null, campoCantSemestres = null, campoFacultad = null;
 
     protected override async Task OnInitializedAsync()
     {
-        programas = await Api.ListarAsync("programa");
+        facultades = await Api.ListarAsync("facultad");
         await CargarRegistros();
     }
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("premio");
+        registros = await Api.ListarAsync("programa");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
         editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        campoDescripcion = string.Empty; campoEntidad = string.Empty;
-        campoPais = string.Empty; campoValor = null; campoFecha = null; campoPrograma = null;
+        campoTipo = string.Empty; campoPais = string.Empty; campoCiudad = string.Empty;
+        campoFechaCreacion = null; campoFechaActualizacion = null;
+        campoNumCreditos = null; campoCantSemestres = null; campoFacultad = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -151,12 +160,14 @@
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
         campoNombre = reg["nombre"]?.ToString() ?? "";
-        campoDescripcion = reg["descripcion"]?.ToString() ?? "";
-        campoEntidad = reg["entidad_otorgante"]?.ToString() ?? "";
+        campoTipo = reg["tipo"]?.ToString() ?? "";
         campoPais = reg["pais"]?.ToString() ?? "";
-        if (double.TryParse(reg["valor"]?.ToString(), out double v)) campoValor = v;
-        if (DateTime.TryParse(reg["fecha"]?.ToString(), out DateTime f)) campoFecha = f;
-        if (int.TryParse(reg["programa"]?.ToString(), out int p)) campoPrograma = p;
+        campoCiudad = reg["ciudad"]?.ToString() ?? "";
+        if (DateTime.TryParse(reg["fecha_creacion"]?.ToString(), out DateTime fc)) campoFechaCreacion = fc;
+        if (DateTime.TryParse(reg["fecha_actualizacion"]?.ToString(), out DateTime fa)) campoFechaActualizacion = fa;
+        if (int.TryParse(reg["num_creditos"]?.ToString(), out int nc)) campoNumCreditos = nc;
+        if (int.TryParse(reg["cant_semestres"]?.ToString(), out int cs)) campoCantSemestres = cs;
+        if (int.TryParse(reg["facultad"]?.ToString(), out int fac)) campoFacultad = fac;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -164,22 +175,22 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["descripcion"] = campoDescripcion,
-            ["entidad_otorgante"] = campoEntidad, ["valor"] = campoValor,
-            ["pais"] = campoPais,
-            ["fecha"] = campoFecha?.ToString("yyyy-MM-dd"),
-            ["programa"] = campoPrograma
+            ["nombre"] = campoNombre, ["tipo"] = campoTipo,
+            ["fecha_creacion"] = campoFechaCreacion?.ToString("yyyy-MM-dd"),
+            ["num_creditos"] = campoNumCreditos, ["cant_semestres"] = campoCantSemestres,
+            ["fecha_actualizacion"] = campoFechaActualizacion?.ToString("yyyy-MM-dd"),
+            ["pais"] = campoPais, ["ciudad"] = campoCiudad, ["facultad"] = campoFacultad
         };
         var resultado = editando
-            ? await Api.ActualizarAsync("premio", "id", campoId, datos)
-            : await Api.CrearAsync("premio", datos);
+            ? await Api.ActualizarAsync("programa", "id", campoId, datos)
+            : await Api.CrearAsync("programa", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("premio", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("programa", "id", reg["id"]?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }

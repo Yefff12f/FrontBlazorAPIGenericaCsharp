@@ -136,6 +136,8 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+     private List<Dictionary<string, object?>> LineaInvestigacion= new();
+         
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoCedula = null, campoLineaInv = null;
@@ -147,7 +149,11 @@
     private string campoNacionalidad = string.Empty, campoPerfil = string.Empty;
     private DateTime? campoFechaNacimiento = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {    
+        LineaInvestigacion = await Api.ListarAsync("LineaInvestigacion"); 
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {

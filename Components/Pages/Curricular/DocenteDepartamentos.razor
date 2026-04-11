@@ -96,12 +96,20 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> docentes = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoDedicacion = string.Empty, campoModalidad = string.Empty;
     private int? campoDocente = null, campoDepartamento = null;
     private DateTime? campoFechaIngreso = null, campoFechaSalida = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    
+   protected override async Task OnInitializedAsync()
+    {
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }    
+
+
 
     private async Task CargarRegistros()
     {

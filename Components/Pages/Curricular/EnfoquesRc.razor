@@ -75,11 +75,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> enfoques = new();
+    private List<Dictionary<string, object?>> registros_cal = new();
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoEnfoque = null, campoRc = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+      protected override async Task OnInitializedAsync()
+    {
+        enfoques = await Api.ListarAsync("enfoque");
+       registros_cal = await Api.ListarAsync("registro_calificado");
+        await CargarRegistros();
+    }    
 
     private async Task CargarRegistros()
     {

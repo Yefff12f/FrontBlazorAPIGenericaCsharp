@@ -40,8 +40,14 @@
                         <input class="form-control" @bind="campoSemestre" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Docente (Cédula)</label>
-                        <input class="form-control" type="number" @bind="campoDocente" />
+                        <label class="form-label">Docente</label>
+                        <select class="form-select" @bind="campoDocente">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -67,10 +73,10 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["calificacion"]</td>
-                        <td>@reg["semestre"]</td>
-                        <td>@reg["docente"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("calificacion")</td>
+                        <td>@reg.GetValueOrDefault("semestre")</td>
+                        <td>@ObtenerNombreDocente(reg.GetValueOrDefault("docente"))</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -89,12 +95,17 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> docentes = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty, campoSemestre = string.Empty;
     private float? campoCalificacion = null;
     private int? campoDocente = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -113,10 +124,10 @@
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        if (float.TryParse(reg["calificacion"]?.ToString(), out float cal)) campoCalificacion = cal;
-        campoSemestre = reg["semestre"]?.ToString() ?? "";
-        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        if (float.TryParse(reg.GetValueOrDefault("calificacion")?.ToString(), out float cal)) campoCalificacion = cal;
+        campoSemestre = reg.GetValueOrDefault("semestre")?.ToString() ?? "";
+        if (int.TryParse(reg.GetValueOrDefault("docente")?.ToString(), out int d)) campoDocente = d;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -137,10 +148,18 @@
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("evaluacion_docente", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("evaluacion_docente", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombreDocente(object? id)
+    {
+        if (id == null) return "";
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

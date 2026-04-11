@@ -44,16 +44,16 @@
                         <input class="form-control" @bind="campoHActv" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Programa (ID)</label>
-                        <input class="form-control" type="number" @bind="campoPrograma" />
-                    </div>
-                    <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Inicio</label>
-                        <input class="form-control" type="date" @bind="campoFechaIni" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaIni?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaIni = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Fin</label>
-                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaFin?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaFin = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Duración Años</label>
@@ -70,6 +70,16 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tipo Titulación</label>
                         <input class="form-control" @bind="campoTipoTitulacion" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Programa</label>
+                        <select class="form-select" @bind="campoPrograma">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var p in programas)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -89,17 +99,14 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th><th>Programa</th><th>Metodología</th><th>Tipo Titulación</th>
-                    <th>Fecha Ini</th><th>Fecha Fin</th><th>Acciones</th>
-                </tr>
+                <tr><th>Id</th><th>Programa</th><th>Metodología</th><th>Tipo Titulación</th><th>Fecha Ini</th><th>Fecha Fin</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
                         <td>@reg["id"]</td>
-                        <td>@reg["programa"]</td>
+                        <td>@ObtenerNombre(programas, reg["programa"], "id", "nombre")</td>
                         <td>@reg["metodologia"]</td>
                         <td>@reg["tipo_titulacion"]</td>
                         <td>@reg["fecha_ini"]</td>
@@ -122,6 +129,7 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> programas = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoCantPreg = string.Empty, campoCalifPreg = string.Empty, campoHActv = string.Empty;
@@ -130,7 +138,11 @@
     private int? campoPrograma = null;
     private DateTime? campoFechaIni = null, campoFechaFin = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        programas = await Api.ListarAsync("programa");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -172,7 +184,8 @@
         {
             ["cant_preg"] = campoCantPreg, ["calif_preg"] = campoCalifPreg,
             ["h_actv_academica"] = campoHActv, ["programa"] = campoPrograma,
-            ["fecha_ini"] = campoFechaIni, ["fecha_fin"] = campoFechaFin,
+            ["fecha_ini"] = campoFechaIni?.ToString("yyyy-MM-dd"),
+            ["fecha_fin"] = campoFechaFin?.ToString("yyyy-MM-dd"),
             ["duracion_anios"] = campoDuracion, ["docente_semestres"] = campoDocenteSemestres,
             ["metodologia"] = campoMetodologia, ["tipo_titulacion"] = campoTipoTitulacion
         };
@@ -191,4 +204,11 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
 }

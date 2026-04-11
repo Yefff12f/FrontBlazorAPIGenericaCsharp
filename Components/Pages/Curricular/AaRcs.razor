@@ -25,12 +25,24 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Actv Académica</label>
-                        <input class="form-control" type="number" @bind="campoActv" disabled="@editando" />
+                        <label class="form-label">Actv Académica</label>
+                        <select class="form-select" @bind="campoActv" disabled="@editando">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in actvs)
+                            {
+                                <option value="@a["id"]">@a["tipo"] — @a["area_formacion"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Registro Calificado</label>
-                        <input class="form-control" type="number" @bind="campoRc" disabled="@editando" />
+                        <label class="form-label">Registro Calificado</label>
+                        <select class="form-select" @bind="campoRc" disabled="@editando">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var r in registrosCal)
+                            {
+                                <option value="@r["id"]">@r["id"] — @r["metodologia"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Componente</label>
@@ -64,8 +76,8 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["actv_academicas_idcurso"]</td>
-                        <td>@reg["registro_calificado_codigo"]</td>
+                        <td>@ObtenerNombreActv(reg["actv_academicas_idcurso"])</td>
+                        <td>@ObtenerNombreRc(reg["registro_calificado_codigo"])</td>
                         <td>@reg["componente"]</td>
                         <td>@reg["semestre"]</td>
                         <td>
@@ -86,11 +98,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> actvs = new();         // ✅ AGREGADO
+    private List<Dictionary<string, object?>> registrosCal = new();  // ✅ AGREGADO
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoComponente = string.Empty, campoSemestre = string.Empty;
     private int? campoActv = null, campoRc = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        actvs = await Api.ListarAsync("actv_academica");          // ✅ usa variable declarada
+        registrosCal = await Api.ListarAsync("registro_calificado"); // ✅ nombre consistente
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -125,13 +144,11 @@
             ["componente"] = campoComponente,
             ["semestre"] = campoSemestre
         };
-
         (bool exito, string mensaje) resultado;
         if (editando)
             resultado = await Api.ActualizarAsync("aa_rc", $"{campoActv}", $"{campoRc}", datos);
         else
             resultado = await Api.CrearAsync("aa_rc", datos);
-
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
@@ -146,4 +163,20 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombreActv(object? id)
+    {
+        if (id == null) return "";
+        var item = actvs.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["tipo"]} — {item["area_formacion"]}";
+    }
+
+    private string ObtenerNombreRc(object? id)
+    {
+        if (id == null) return "";
+        var item = registrosCal.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["id"]} — {item["metodologia"]}";
+    }
 }

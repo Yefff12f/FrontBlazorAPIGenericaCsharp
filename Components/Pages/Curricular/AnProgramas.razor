@@ -78,9 +78,17 @@
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoAspecto = null, campoPrograma = null;
+    
+    private List<Dictionary<string, object?>> aspectos = new();
+    private List<Dictionary<string, object?>> programas = new();
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
-
+    protected override async Task OnInitializedAsync()
+    {
+        aspectos = await Api.ListarAsync("aspecto_normativo");
+        programas = await Api.ListarAsync("programa");
+        await CargarRegistros();
+    }
+    
     private async Task CargarRegistros()
     {
         cargando = true;

@@ -21,16 +21,28 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">Nueva Relación Área Conocimiento — Línea</div>
+            <div class="card-header">Nueva Relación AC — Línea</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Línea Investigación</label>
-                        <input class="form-control" type="number" @bind="campoLinea" />
+                        <label class="form-label">Línea Investigación</label>
+                        <select class="form-select" @bind="campoLinea">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Área Conocimiento</label>
-                        <input class="form-control" type="number" @bind="campoArea" />
+                        <label class="form-label">Área Conocimiento</label>
+                        <select class="form-select" @bind="campoArea">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in areas)
+                            {
+                                <option value="@a["id"]">@a["area"] — @a["disciplina"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -50,14 +62,14 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Línea Investigación</th><th>Área Conocimiento</th><th>Acciones</th></tr>
+                <tr><th>Línea</th><th>Área Conocimiento</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["linea_investigacion"]</td>
-                        <td>@reg["area_conocimiento"]</td>
+                        <td>@ObtenerNombre(lineas, reg["linea_investigacion"], "id", "nombre")</td>
+                        <td>@ObtenerNombreArea(reg["area_conocimiento"])</td>
                         <td>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
@@ -75,11 +87,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> lineas = new();
+    private List<Dictionary<string, object?>> areas = new();
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoLinea = null, campoArea = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        lineas = await Api.ListarAsync("linea_investigacion");
+        areas = await Api.ListarAsync("area_conocimiento");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -116,4 +135,19 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreArea(object? id)
+    {
+        if (id == null) return "";
+        var item = areas.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["area"]} — {item["disciplina"]}";
+    }
 }

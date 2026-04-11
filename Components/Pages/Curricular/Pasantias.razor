@@ -48,8 +48,14 @@
                         <input class="form-control" @bind="campoDescripcion" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Programa (ID)</label>
-                        <input class="form-control" type="number" @bind="campoPrograma" />
+                        <label class="form-label">Programa</label>
+                        <select class="form-select" @bind="campoPrograma">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var p in programas)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -69,7 +75,7 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr><th>Id</th><th>Nombre</th><th>País</th><th>Empresa</th><th>Descripción</th><th>Programa</th><th>Acciones</th></tr>
+                <tr><th>Id</th><th>Nombre</th><th>País</th><th>Empresa</th><th>Programa</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
@@ -79,8 +85,7 @@
                         <td>@reg["nombre"]</td>
                         <td>@reg["pais"]</td>
                         <td>@reg["empresa"]</td>
-                        <td>@reg["descripcion"]</td>
-                        <td>@reg["programa"]</td>
+                        <td>@ObtenerNombre(programas, reg["programa"], "id", "nombre")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -99,13 +104,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> programas = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoNombre = string.Empty, campoPais = string.Empty;
     private string campoEmpresa = string.Empty, campoDescripcion = string.Empty;
     private int? campoPrograma = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        programas = await Api.ListarAsync("programa");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -157,4 +167,11 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
 }

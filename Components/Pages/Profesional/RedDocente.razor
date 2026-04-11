@@ -25,20 +25,36 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Red</label>
-                        <input class="form-control" type="number" @bind="campoRed" disabled="@editando" />
+                        <label class="form-label">Red</label>
+                        <select class="form-select" @bind="campoRed" disabled="@editando">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var r in redes)
+                            {
+                                <option value="@r["idr"]">@r["nombre"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Docente (Cédula)</label>
-                        <input class="form-control" type="number" @bind="campoDocente" disabled="@editando" />
+                        <label class="form-label">Docente</label>
+                        <select class="form-select" @bind="campoDocente" disabled="@editando">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Inicio</label>
-                        <input class="form-control" type="date" @bind="campoFechaInicio" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaInicio?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaInicio = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Fin</label>
-                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaFin?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaFin = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-8 mb-3">
                         <label class="form-label">Act. Destacadas</label>
@@ -68,10 +84,10 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["red"]</td>
-                        <td>@reg["docente"]</td>
-                        <td>@reg["fecha_inicio"]</td>
-                        <td>@reg["fecha_fin"]</td>
+                        <td>@ObtenerNombre(redes, reg.GetValueOrDefault("red"), "idr", "nombre")</td>
+                        <td>@ObtenerNombreDocente(reg.GetValueOrDefault("docente"))</td>
+                        <td>@reg.GetValueOrDefault("fecha_inicio")</td>
+                        <td>@reg.GetValueOrDefault("fecha_fin")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -90,12 +106,19 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> redes = new();
+    private List<Dictionary<string, object?>> docentes = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoActDestacadas = string.Empty;
     private int? campoRed = null, campoDocente = null;
     private DateTime? campoFechaInicio = null, campoFechaFin = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        redes = await Api.ListarAsync("red");
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -114,11 +137,11 @@
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        if (int.TryParse(reg["red"]?.ToString(), out int r)) campoRed = r;
-        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
-        if (DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fi)) campoFechaInicio = fi;
-        if (DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime ff)) campoFechaFin = ff;
-        campoActDestacadas = reg["act_destacadas"]?.ToString() ?? "";
+        if (int.TryParse(reg.GetValueOrDefault("red")?.ToString(), out int r)) campoRed = r;
+        if (int.TryParse(reg.GetValueOrDefault("docente")?.ToString(), out int d)) campoDocente = d;
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_inicio")?.ToString(), out DateTime fi)) campoFechaInicio = fi;
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_fin")?.ToString(), out DateTime ff)) campoFechaFin = ff;
+        campoActDestacadas = reg.GetValueOrDefault("act_destacadas")?.ToString() ?? "";
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -127,7 +150,8 @@
         var datos = new Dictionary<string, object?>
         {
             ["red"] = campoRed, ["docente"] = campoDocente,
-            ["fecha_inicio"] = campoFechaInicio, ["fecha_fin"] = campoFechaFin,
+            ["fecha_inicio"] = campoFechaInicio?.ToString("yyyy-MM-dd"),
+            ["fecha_fin"] = campoFechaFin?.ToString("yyyy-MM-dd"),
             ["act_destacadas"] = campoActDestacadas
         };
         (bool exito, string mensaje) resultado;
@@ -141,12 +165,27 @@
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        int r = Convert.ToInt32(reg["red"]);
-        int d = Convert.ToInt32(reg["docente"]);
+        int r = Convert.ToInt32(reg.GetValueOrDefault("red"));
+        int d = Convert.ToInt32(reg.GetValueOrDefault("docente"));
         var respuesta = await Api.EliminarAsync("red_docente", $"{r}", $"{d}");
         exito = respuesta.exito; mensaje = respuesta.mensaje;
         if (exito) await CargarRegistros();
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreDocente(object? id)
+    {
+        if (id == null) return "";
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

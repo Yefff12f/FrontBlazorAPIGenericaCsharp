@@ -75,11 +75,19 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> Proyecto = new();
+    private List<Dictionary<string, object?>> AreaConocimiento = new();
     private bool cargando = true, mostrarFormulario = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoProyecto = null, campoArea = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+      protected override async Task OnInitializedAsync()
+    {
+        Proyecto = await Api.ListarAsync("Proyecto");          
+        AreaConocimiento = await Api.ListarAsync("AreaConocimiento"); 
+        await CargarRegistros();
+    }
+
 
     private async Task CargarRegistros()
     {

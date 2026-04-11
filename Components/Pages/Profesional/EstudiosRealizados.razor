@@ -41,7 +41,9 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha</label>
-                        <input class="form-control" type="date" @bind="campoFecha" />
+                        <input class="form-control" type="date"
+                            value="@campoFecha?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFecha = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tipo</label>
@@ -50,10 +52,6 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Ciudad</label>
                         <input class="form-control" @bind="campoCiudad" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Docente (Cédula)</label>
-                        <input class="form-control" type="number" @bind="campoDocente" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Ins. Acreditada</label>
@@ -70,6 +68,16 @@
                     <div class="col-md-8 mb-3">
                         <label class="form-label">Perfil Egresado</label>
                         <textarea class="form-control" rows="3" @bind="campoPerfilEgresado"></textarea>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Docente</label>
+                        <select class="form-select" @bind="campoDocente">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -95,13 +103,13 @@
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["titulo"]</td>
-                        <td>@reg["universidad"]</td>
-                        <td>@reg["tipo"]</td>
-                        <td>@reg["ciudad"]</td>
-                        <td>@reg["pais"]</td>
-                        <td>@reg["docente"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("titulo")</td>
+                        <td>@reg.GetValueOrDefault("universidad")</td>
+                        <td>@reg.GetValueOrDefault("tipo")</td>
+                        <td>@reg.GetValueOrDefault("ciudad")</td>
+                        <td>@reg.GetValueOrDefault("pais")</td>
+                        <td>@ObtenerNombreDocente(reg.GetValueOrDefault("docente"))</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -120,6 +128,7 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> docentes = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoTitulo = string.Empty, campoUniversidad = string.Empty;
@@ -129,7 +138,11 @@
     private int? campoDocente = null;
     private bool campoInsAcreditada = false;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -150,17 +163,17 @@
     private void EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoTitulo = reg["titulo"]?.ToString() ?? "";
-        campoUniversidad = reg["universidad"]?.ToString() ?? "";
-        if (DateTime.TryParse(reg["fecha"]?.ToString(), out DateTime f)) campoFecha = f;
-        campoTipo = reg["tipo"]?.ToString() ?? "";
-        campoCiudad = reg["ciudad"]?.ToString() ?? "";
-        campoMetodologia = reg["metodologia"]?.ToString() ?? "";
-        campoPerfilEgresado = reg["perfil_egresado"]?.ToString() ?? "";
-        campoPais = reg["pais"]?.ToString() ?? "";
-        campoInsAcreditada = reg["ins_acreditada"] as bool? ?? false;
-        if (int.TryParse(reg["docente"]?.ToString(), out int d)) campoDocente = d;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoTitulo = reg.GetValueOrDefault("titulo")?.ToString() ?? "";
+        campoUniversidad = reg.GetValueOrDefault("universidad")?.ToString() ?? "";
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha")?.ToString(), out DateTime f)) campoFecha = f;
+        campoTipo = reg.GetValueOrDefault("tipo")?.ToString() ?? "";
+        campoCiudad = reg.GetValueOrDefault("ciudad")?.ToString() ?? "";
+        campoMetodologia = reg.GetValueOrDefault("metodologia")?.ToString() ?? "";
+        campoPerfilEgresado = reg.GetValueOrDefault("perfil_egresado")?.ToString() ?? "";
+        campoPais = reg.GetValueOrDefault("pais")?.ToString() ?? "";
+        campoInsAcreditada = reg.GetValueOrDefault("ins_acreditada") as bool? ?? false;
+        if (int.TryParse(reg.GetValueOrDefault("docente")?.ToString(), out int d)) campoDocente = d;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -169,10 +182,10 @@
         var datos = new Dictionary<string, object?>
         {
             ["titulo"] = campoTitulo, ["universidad"] = campoUniversidad,
-            ["fecha"] = campoFecha, ["tipo"] = campoTipo, ["ciudad"] = campoCiudad,
-            ["docente"] = campoDocente, ["ins_acreditada"] = campoInsAcreditada,
-            ["metodologia"] = campoMetodologia, ["perfil_egresado"] = campoPerfilEgresado,
-            ["pais"] = campoPais
+            ["fecha"] = campoFecha?.ToString("yyyy-MM-dd"), ["tipo"] = campoTipo,
+            ["ciudad"] = campoCiudad, ["docente"] = campoDocente,
+            ["ins_acreditada"] = campoInsAcreditada, ["metodologia"] = campoMetodologia,
+            ["perfil_egresado"] = campoPerfilEgresado, ["pais"] = campoPais
         };
         var resultado = editando
             ? await Api.ActualizarAsync("estudios_realizados", "id", campoId, datos)
@@ -183,10 +196,18 @@
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("estudios_realizados", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("estudios_realizados", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombreDocente(object? id)
+    {
+        if (id == null) return "";
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

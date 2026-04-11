@@ -1,9 +1,9 @@
-@page "/programas"
+@page "/actvs-academicas"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
 <div class="container mt-4">
-    <h3>Programas</h3>
+    <h3>Actividades Académicas</h3>
 
     @if (!string.IsNullOrEmpty(mensaje))
     {
@@ -15,13 +15,13 @@
 
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Programa</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Actividad</button>
     }
 
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Programa" : "Nuevo Programa")</div>
+            <div class="card-header">@(editando ? "Editar Actividad" : "Nueva Actividad")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -32,40 +32,44 @@
                         </div>
                     }
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" />
+                        <label class="form-label">Num Créditos</label>
+                        <input class="form-control" type="number" @bind="campoNumCreditos" />
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tipo</label>
                         <input class="form-control" @bind="campoTipo" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha Creación</label>
-                        <input class="form-control" type="date" @bind="campoFechaCreacion" />
+                        <label class="form-label">Área Formación</label>
+                        <input class="form-control" @bind="campoAreaFormacion" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Num Créditos</label>
-                        <input class="form-control" type="number" @bind="campoNumCreditos" />
+                        <label class="form-label">Exeq</label>
+                        <input class="form-check-input" type="checkbox" @bind="campoExeq" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Cant Semestres</label>
-                        <input class="form-control" type="number" @bind="campoCantSemestres" />
+                        <label class="form-label">H Nohdi</label>
+                        <input class="form-control" type="number" @bind="campoHNohdi" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha Actualización</label>
-                        <input class="form-control" type="date" @bind="campoFechaActualizacion" />
+                        <label class="form-label">H Unidad</label>
+                        <input class="form-control" type="number" @bind="campoHUnidad" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">País</label>
-                        <input class="form-control" @bind="campoPais" />
+                        <label class="form-label">Diploma</label>
+                        <input class="form-control" @bind="campoDiploma" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Ciudad</label>
-                        <input class="form-control" @bind="campoCiudad" />
+                        <label class="form-label">Entidad Espejo</label>
+                        <input class="form-control" @bind="campoEntidadEspejo" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Facultad (ID)</label>
-                        <input class="form-control" type="number" @bind="campoFacultad" />
+                        <label class="form-label">País Apoyo</label>
+                        <input class="form-control" @bind="campoPaisApoyo" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Dinero</label>
+                        <input class="form-control" type="number" @bind="campoDinero" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
@@ -86,9 +90,8 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>Id</th><th>Nombre</th><th>Tipo</th><th>Fecha Creación</th>
-                    <th>Créditos</th><th>Semestres</th><th>País</th><th>Ciudad</th>
-                    <th>Facultad</th><th>Acciones</th>
+                    <th>Id</th><th>Créditos</th><th>Tipo</th><th>Área Formación</th>
+                    <th>Diploma</th><th>Entidad Espejo</th><th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,14 +99,11 @@
                 {
                     <tr>
                         <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["tipo"]</td>
-                        <td>@reg["fecha_creacion"]</td>
                         <td>@reg["num_creditos"]</td>
-                        <td>@reg["cant_semestres"]</td>
-                        <td>@reg["pais"]</td>
-                        <td>@reg["ciudad"]</td>
-                        <td>@reg["facultad"]</td>
+                        <td>@reg["tipo"]</td>
+                        <td>@reg["area_formacion"]</td>
+                        <td>@reg["diploma"]</td>
+                        <td>@reg["entidad_Espejo"]</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -116,7 +116,7 @@
 
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en programa.</div>
+        <div class="alert alert-warning">No se encontraron registros en actv_academica.</div>
     }
 </div>
 
@@ -124,26 +124,26 @@
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
-    private string campoNombre = string.Empty, campoTipo = string.Empty;
-    private string campoPais = string.Empty, campoCiudad = string.Empty;
-    private DateTime? campoFechaCreacion = null, campoFechaActualizacion = null;
-    private int? campoNumCreditos = null, campoCantSemestres = null, campoFacultad = null;
+    private string campoTipo = string.Empty, campoAreaFormacion = string.Empty;
+    private string campoDiploma = string.Empty, campoEntidadEspejo = string.Empty, campoPaisApoyo = string.Empty;
+    private int? campoNumCreditos = null, campoHNohdi = null, campoHUnidad = null, campoDinero = null;
+    private bool campoExeq = false;
 
     protected override async Task OnInitializedAsync() => await CargarRegistros();
 
     private async Task CargarRegistros()
     {
         cargando = true;
-        registros = await Api.ListarAsync("programa");
+        registros = await Api.ListarAsync("actv_academica");
         cargando = false;
     }
 
     private void NuevoRegistro()
     {
-        editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        campoTipo = string.Empty; campoPais = string.Empty; campoCiudad = string.Empty;
-        campoFechaCreacion = null; campoFechaActualizacion = null;
-        campoNumCreditos = null; campoCantSemestres = null; campoFacultad = null;
+        editando = false; campoId = string.Empty; campoNumCreditos = null;
+        campoTipo = string.Empty; campoAreaFormacion = string.Empty; campoExeq = false;
+        campoHNohdi = null; campoHUnidad = null; campoDiploma = string.Empty;
+        campoEntidadEspejo = string.Empty; campoPaisApoyo = string.Empty; campoDinero = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -151,15 +151,16 @@
     {
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
         campoTipo = reg["tipo"]?.ToString() ?? "";
-        campoPais = reg["pais"]?.ToString() ?? "";
-        campoCiudad = reg["ciudad"]?.ToString() ?? "";
-        if (DateTime.TryParse(reg["fecha_creacion"]?.ToString(), out DateTime fc)) campoFechaCreacion = fc;
-        if (DateTime.TryParse(reg["fecha_actualizacion"]?.ToString(), out DateTime fa)) campoFechaActualizacion = fa;
+        campoAreaFormacion = reg["area_formacion"]?.ToString() ?? "";
+        campoDiploma = reg["diploma"]?.ToString() ?? "";
+        campoEntidadEspejo = reg["entidad_espejo"]?.ToString() ?? "";
+        campoPaisApoyo = reg["pais_apoyo"]?.ToString() ?? "";
+        campoExeq = reg["exeq"] as bool? ?? false;
         if (int.TryParse(reg["num_creditos"]?.ToString(), out int nc)) campoNumCreditos = nc;
-        if (int.TryParse(reg["cant_semestres"]?.ToString(), out int cs)) campoCantSemestres = cs;
-        if (int.TryParse(reg["facultad"]?.ToString(), out int fac)) campoFacultad = fac;
+        if (int.TryParse(reg["h_nohdi"]?.ToString(), out int hn)) campoHNohdi = hn;
+        if (int.TryParse(reg["h_unidad"]?.ToString(), out int hu)) campoHUnidad = hu;
+        if (int.TryParse(reg["dinero"]?.ToString(), out int d)) campoDinero = d;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
@@ -167,21 +168,22 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["tipo"] = campoTipo,
-            ["fecha_creacion"] = campoFechaCreacion, ["num_creditos"] = campoNumCreditos,
-            ["cant_semestres"] = campoCantSemestres, ["fecha_actualizacion"] = campoFechaActualizacion,
-            ["pais"] = campoPais, ["ciudad"] = campoCiudad, ["facultad"] = campoFacultad
+            ["num_creditos"] = campoNumCreditos, ["tipo"] = campoTipo,
+            ["area_formacion"] = campoAreaFormacion, ["exeq"] = campoExeq,
+            ["h_nohdi"] = campoHNohdi, ["h_unidad"] = campoHUnidad,
+            ["diploma"] = campoDiploma, ["entidad_espejo"] = campoEntidadEspejo,
+            ["pais_apoyo"] = campoPaisApoyo, ["dinero"] = campoDinero
         };
         var resultado = editando
-            ? await Api.ActualizarAsync("programa", "id", campoId, datos)
-            : await Api.CrearAsync("programa", datos);
+            ? await Api.ActualizarAsync("actv_academica", "id", campoId, datos)
+            : await Api.CrearAsync("actv_academica", datos);
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("programa", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("actv_academica", "id", reg["id"]?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }

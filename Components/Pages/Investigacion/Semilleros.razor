@@ -91,12 +91,18 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+        private List<Dictionary<string, object?>> Universidad = new();
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
     private DateTime? campoFechaFundacion = null;
     private int? campoUniversidad = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    protected override async Task OnInitializedAsync()
+    {    
+       Universidad = await Api.ListarAsync("Universidad"); 
+        await CargarRegistros();
+    }
+
 
     private async Task CargarRegistros()
     {
