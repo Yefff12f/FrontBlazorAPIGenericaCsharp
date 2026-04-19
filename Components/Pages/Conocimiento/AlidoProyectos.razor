@@ -18,26 +18,44 @@
         <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
     }
 
-    @if (mostrarFormulario)
-    {
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación Aliado — Proyecto</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Aliado</label>
-                        <input class="form-control" type="number" @bind="campoAliado" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Proyecto</label>
-                        <input class="form-control" type="number" @bind="campoProyecto" />
-                    </div>
+@if (mostrarFormulario)
+{
+    <div class="card mb-3">
+        <div class="card-header">Nueva Relación Aliado — Proyecto</div>
+        <div class="card-body">
+            <div class="row">
+
+                <!-- SELECT ALIADO -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Aliado</label>
+                    <select class="form-select" @bind="campoAliado">
+                        <option value="">Seleccione un aliado</option>
+                        @foreach (var a in Aliado)
+                        {
+                            <option value="@a["id"]">@a["nombre"]</option>
+                        }
+                    </select>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+                <!-- SELECT PROYECTO -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Proyecto</label>
+                    <select class="form-select" @bind="campoProyecto">
+                        <option value="">Seleccione un proyecto</option>
+                        @foreach (var p in Proyecto)
+                        {
+                            <option value="@p["id"]">@p["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
             </div>
+
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
         </div>
-    }
+    </div>
+}
 
     @if (cargando)
     {

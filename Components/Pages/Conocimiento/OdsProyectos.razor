@@ -19,25 +19,43 @@
     }
 
     @if (mostrarFormulario)
-    {
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación ODS — Proyecto</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Proyecto</label>
-                        <input class="form-control" type="number" @bind="campoProyecto" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID ODS</label>
-                        <input class="form-control" type="number" @bind="campoOds" />
-                    </div>
+{
+    <div class="card mb-3">
+        <div class="card-header">Nueva Relación ODS — Proyecto</div>
+        <div class="card-body">
+            <div class="row">
+
+                <!-- SELECT PROYECTO -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Proyecto</label>
+                    <select class="form-select" @bind="campoProyecto">
+                        <option value="">Seleccione un proyecto</option>
+                        @foreach (var p in Proyecto)
+                        {
+                            <option value="@p["id"]">@p["nombre"]</option>
+                        }
+                    </select>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+                <!-- SELECT ODS -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">ODS</label>
+                    <select class="form-select" @bind="campoOds">
+                        <option value="">Seleccione un ODS</option>
+                        @foreach (var o in Ods)
+                        {
+                            <option value="@o["id"]">@o["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
             </div>
+
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
         </div>
-    }
+    </div>
+}
 
     @if (cargando)
     {

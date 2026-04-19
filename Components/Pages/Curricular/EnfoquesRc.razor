@@ -19,25 +19,43 @@
     }
 
     @if (mostrarFormulario)
-    {
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación Enfoque — Registro Calificado</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Enfoque</label>
-                        <input class="form-control" type="number" @bind="campoEnfoque" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Registro Calificado</label>
-                        <input class="form-control" type="number" @bind="campoRc" />
-                    </div>
+{
+    <div class="card mb-3">
+        <div class="card-header">Nueva Relación Enfoque — Registro Calificado</div>
+        <div class="card-body">
+            <div class="row">
+
+                <!-- SELECT ENFOQUE -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Enfoque</label>
+                    <select class="form-select" @bind="campoEnfoque">
+                        <option value="">Seleccione un enfoque</option>
+                        @foreach (var e in enfoques)
+                        {
+                            <option value="@e["id"]">@e["nombre"]</option>
+                        }
+                    </select>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+                <!-- SELECT REGISTRO CALIFICADO -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Registro Calificado</label>
+                    <select class="form-select" @bind="campoRc">
+                        <option value="">Seleccione un registro</option>
+                        @foreach (var r in registros_cal)
+                        {
+                            <option value="@r["id"]">@r["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
             </div>
+
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
         </div>
-    }
+    </div>
+}
 
     @if (cargando)
     {

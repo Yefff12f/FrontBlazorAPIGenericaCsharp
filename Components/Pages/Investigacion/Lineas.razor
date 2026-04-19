@@ -5,7 +5,6 @@
 <div class="container mt-4">
     <h3>Líneas de Investigación</h3>
 
-    @* ───────── ALERTA DE EXITO O ERROR ───────── *@
     @if (!string.IsNullOrEmpty(mensaje))
     {
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
@@ -14,20 +13,21 @@
         </div>
     }
 
-    @* ───────── BOTON PARA MOSTRAR FORMULARIO DE CREAR ───────── *@
     @if (!mostrarFormulario)
     {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Línea</button>
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Línea</button>
     }
 
-    @* ───────── FORMULARIO (CREAR / EDITAR) ───────── *@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">
+            <div class="card-header fw-bold">
                 @(editando ? "Editar Línea" : "Nueva Línea")
             </div>
             <div class="card-body">
+
+                @* ── DATOS PRINCIPALES ── *@
+                <h6 class="text-muted mb-3">Datos de la Línea</h6>
                 <div class="row">
                     @if (editando)
                     {
@@ -40,55 +40,182 @@
                         <label class="form-label">Nombre</label>
                         <input class="form-control" @bind="campoNombre" />
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-8 mb-3">
                         <label class="form-label">Descripción</label>
                         <input class="form-control" @bind="campoDescripcion" />
                     </div>
                 </div>
+
+                @* ── INTERMEDIA: ÁREAS DE CONOCIMIENTO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Conocimiento</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="areaConocimientoSeleccionada">
+                            <option value="">-- Seleccione Área Conocimiento --</option>
+                            @foreach (var a in areasConocimiento)
+                            {
+                                <option value="@a["id"]">@a["area"] — @a["disciplina"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAreaConocimiento">
+                            + Agregar
+                        </button>
+                    </div>
+                </div>
+                @if (areasConocimientoAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Área Conocimiento</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var id in areasConocimientoAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreArea(id)</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarAreaConocimiento(id)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay áreas de conocimiento agregadas.</div>
+                }
+
+                @* ── INTERMEDIA: ÁREAS DE APLICACIÓN ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Aplicación</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="areaAplicacionSeleccionada">
+                            <option value="">-- Seleccione Área Aplicación --</option>
+                            @foreach (var a in areasAplicacion)
+                            {
+                                <option value="@a["id"]">@a["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAreaAplicacion">
+                            + Agregar
+                        </button>
+                    </div>
+                </div>
+                @if (areasAplicacionAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Área Aplicación</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var id in areasAplicacionAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(areasAplicacion, id, "id", "nombre")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarAreaAplicacion(id)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay áreas de aplicación agregadas.</div>
+                }
+
+                @* ── INTERMEDIA: ODS ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Objetivos de Desarrollo Sostenible (ODS)</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="odsSeleccionado">
+                            <option value="">-- Seleccione ODS --</option>
+                            @foreach (var o in ods)
+                            {
+                                <option value="@o["id"]">@o["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarOds">
+                            + Agregar
+                        </button>
+                    </div>
+                </div>
+                @if (odsAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>ODS</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var id in odsAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(ods, id, "id", "nombre")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarOds(id)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay ODS agregados.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
         </div>
     }
 
-    @* ───────── SPINNER DE CARGA ───────── *@
     @if (cargando)
     {
         <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
 
-    @* ───────── TABLA DE REGISTROS ───────── *@
     @if (!cargando && registros.Any())
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>Id</th><th>Nombre</th><th>Descripción</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["descripcion"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("nombre")</td>
+                        <td>@reg.GetValueOrDefault("descripcion")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">
-                                Editar
-                            </button>
+                                @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">
-                                Eliminar
-                            </button>
+                                @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -96,50 +223,38 @@
         </table>
     }
 
-    @* ───────── MENSAJE CUANDO NO HAY DATOS ───────── *@
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en la tabla linea_investigacion.</div>
+        <div class="alert alert-warning">No se encontraron registros en linea_investigacion.</div>
     }
 </div>
 
 @code {
-    // ───────── VARIABLES DE ESTADO ─────────
-
-    // Lista de registros obtenidos de la API
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> areasConocimiento = new();
+    private List<Dictionary<string, object?>> areasAplicacion = new();
+    private List<Dictionary<string, object?>> ods = new();
 
-    // Controla si se muestra el spinner de carga
-    private bool cargando = true;
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty, campoId = string.Empty;
+    private string campoNombre = string.Empty, campoDescripcion = string.Empty;
 
-    // Controla si se muestra el formulario
-    private bool mostrarFormulario = false;
+    // Intermedias
+    private List<int> areasConocimientoAgregadas = new();
+    private List<int> areasAplicacionAgregadas = new();
+    private List<int> odsAgregados = new();
+    private int? areaConocimientoSeleccionada = null;
+    private int? areaAplicacionSeleccionada = null;
+    private int? odsSeleccionado = null;
 
-    // Indica si estamos editando (true) o creando (false)
-    private bool editando = false;
-
-    // Mensaje de alerta para el usuario
-    private string mensaje = string.Empty;
-
-    // Indica si la ultima operacion fue exitosa (para color de alerta)
-    private bool exito = false;
-
-    // Campos del formulario para línea de investigación
-    private string campoId = string.Empty; // solo usado al editar
-    private string campoNombre = string.Empty;
-    private string campoDescripcion = string.Empty;
-
-    // ───────── CICLO DE VIDA ─────────
-
-    // Se ejecuta al cargar la pagina por primera vez
     protected override async Task OnInitializedAsync()
     {
+        areasConocimiento = await Api.ListarAsync("area_conocimiento");
+        areasAplicacion = await Api.ListarAsync("area_aplicacion");
+        ods = await Api.ListarAsync("objetivos_desarrollo_sostenible");
         await CargarRegistros();
     }
 
-    // ───────── METODOS ─────────
-
-    // Obtiene todos los registros de la tabla linea_investigacion
     private async Task CargarRegistros()
     {
         cargando = true;
@@ -147,80 +262,163 @@
         cargando = false;
     }
 
-    // Muestra el formulario vacio para crear una nueva linea
     private void NuevoRegistro()
     {
-        editando = false;
-        campoId = string.Empty;
-        campoNombre = string.Empty;
-        campoDescripcion = string.Empty;
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        editando = false; campoId = string.Empty;
+        campoNombre = string.Empty; campoDescripcion = string.Empty;
+        areasConocimientoAgregadas = new(); areasAplicacionAgregadas = new(); odsAgregados = new();
+        areaConocimientoSeleccionada = null; areaAplicacionSeleccionada = null; odsSeleccionado = null;
+        mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    // Llena el formulario con los datos del registro seleccionado
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
-        campoDescripcion = reg["descripcion"]?.ToString() ?? "";
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoNombre = reg.GetValueOrDefault("nombre")?.ToString() ?? "";
+        campoDescripcion = reg.GetValueOrDefault("descripcion")?.ToString() ?? "";
+
+        // Cargar áreas conocimiento
+        var todasAc = await Api.ListarAsync("ac_linea");
+        areasConocimientoAgregadas = todasAc
+            .Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("area_conocimiento")))
+            .ToList();
+
+        // Cargar áreas aplicación
+        var todasAs = await Api.ListarAsync("as_linea");
+        areasAplicacionAgregadas = todasAs
+            .Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("area_aplicacion")))
+            .ToList();
+
+        // Cargar ODS
+        var todosOds = await Api.ListarAsync("ods_linea");
+        odsAgregados = todosOds
+            .Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("ods")))
+            .ToList();
+
+        mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    // Crea o actualiza una linea de investigacion segun el modo (editando o creando)
+    // Agregar / Quitar AC
+    private void AgregarAreaConocimiento()
+    {
+        if (areaConocimientoSeleccionada == null) return;
+        if (areasConocimientoAgregadas.Contains(areaConocimientoSeleccionada.Value))
+        { mensaje = "Ya fue agregada."; exito = false; return; }
+        areasConocimientoAgregadas.Add(areaConocimientoSeleccionada.Value);
+        areaConocimientoSeleccionada = null;
+    }
+    private void QuitarAreaConocimiento(int id) => areasConocimientoAgregadas.Remove(id);
+
+    // Agregar / Quitar AS
+    private void AgregarAreaAplicacion()
+    {
+        if (areaAplicacionSeleccionada == null) return;
+        if (areasAplicacionAgregadas.Contains(areaAplicacionSeleccionada.Value))
+        { mensaje = "Ya fue agregada."; exito = false; return; }
+        areasAplicacionAgregadas.Add(areaAplicacionSeleccionada.Value);
+        areaAplicacionSeleccionada = null;
+    }
+    private void QuitarAreaAplicacion(int id) => areasAplicacionAgregadas.Remove(id);
+
+    // Agregar / Quitar ODS
+    private void AgregarOds()
+    {
+        if (odsSeleccionado == null) return;
+        if (odsAgregados.Contains(odsSeleccionado.Value))
+        { mensaje = "Ya fue agregado."; exito = false; return; }
+        odsAgregados.Add(odsSeleccionado.Value);
+        odsSeleccionado = null;
+    }
+    private void QuitarOds(int id) => odsAgregados.Remove(id);
+
     private async Task GuardarRegistro()
     {
-        // Arma el diccionario con los datos del formulario
+        // 1. Guardar línea principal
         var datos = new Dictionary<string, object?>
         {
             ["nombre"] = campoNombre,
             ["descripcion"] = campoDescripcion
         };
 
+        (bool exito, string mensaje) resultado;
+        if (editando)
+            resultado = await Api.ActualizarAsync("linea_investigacion", "id", campoId, datos);
+        else
+            resultado = await Api.CrearAsync("linea_investigacion", datos);
+
+        if (!resultado.exito) { exito = false; mensaje = resultado.mensaje; return; }
+
+        // Obtener id
+        string lineaId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("linea_investigacion");
+            lineaId = todos.LastOrDefault()?.GetValueOrDefault("id")?.ToString() ?? "";
+        }
+
+        // 2. Sincronizar ac_linea
         if (editando)
         {
-            // PUT /api/linea_investigacion/id/{valor}
-            var resultado = await Api.ActualizarAsync("linea_investigacion", "id", campoId, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
+            var existentes = await Api.ListarAsync("ac_linea");
+            foreach (var x in existentes.Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == lineaId))
+                await Api.EliminarAsync("ac_linea", lineaId, x.GetValueOrDefault("area_conocimiento")?.ToString() ?? "");
         }
-        else
-        {
-            // POST /api/linea_investigacion
-            var resultado = await Api.CrearAsync("linea_investigacion", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
+        foreach (var aId in areasConocimientoAgregadas)
+            await Api.CrearAsync("ac_linea", new Dictionary<string, object?>
+            { ["linea_investigacion"] = int.Parse(lineaId), ["area_conocimiento"] = aId });
 
-        if (exito)
+        // 3. Sincronizar as_linea
+        if (editando)
         {
-            mostrarFormulario = false;
-            await CargarRegistros(); // Recargar la tabla
+            var existentes = await Api.ListarAsync("as_linea");
+            foreach (var x in existentes.Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == lineaId))
+                await Api.EliminarAsync("as_linea", lineaId, x.GetValueOrDefault("area_aplicacion")?.ToString() ?? "");
         }
+        foreach (var aId in areasAplicacionAgregadas)
+            await Api.CrearAsync("as_linea", new Dictionary<string, object?>
+            { ["linea_investigacion"] = int.Parse(lineaId), ["area_aplicacion"] = aId });
+
+        // 4. Sincronizar ods_linea
+        if (editando)
+        {
+            var existentes = await Api.ListarAsync("ods_linea");
+            foreach (var x in existentes.Where(x => x.GetValueOrDefault("linea_investigacion")?.ToString() == lineaId))
+                await Api.EliminarAsync("ods_linea", lineaId, x.GetValueOrDefault("ods")?.ToString() ?? "");
+        }
+        foreach (var oId in odsAgregados)
+            await Api.CrearAsync("ods_linea", new Dictionary<string, object?>
+            { ["linea_investigacion"] = int.Parse(lineaId), ["ods"] = oId });
+
+        exito = true;
+        mensaje = editando ? "Línea actualizada correctamente" : "Línea creada correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
-    // Elimina un registro despues de confirmacion
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        string id = reg["id"]?.ToString() ?? "";
-
-        // DELETE /api/linea_investigacion/id/{valor}
-        var resultado = await Api.EliminarAsync("linea_investigacion", "id", id);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
-
-        if (exito)
-        {
-            await CargarRegistros(); // Recargar la tabla
-        }
+        var resultado = await Api.EliminarAsync("linea_investigacion", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
     }
 
-    // Oculta el formulario sin guardar
-    private void Cancelar()
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
     {
-        mostrarFormulario = false;
-        mensaje = string.Empty;
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreArea(int id)
+    {
+        var item = areasConocimiento.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["area"]} — {item["disciplina"]}";
     }
 }

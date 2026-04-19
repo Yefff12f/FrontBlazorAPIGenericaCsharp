@@ -21,8 +21,13 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Semillero" : "Nuevo Semillero")</div>
+            <div class="card-header fw-bold">
+                @(editando ? "Editar Semillero" : "Nuevo Semillero")
+            </div>
             <div class="card-body">
+
+                @* ── DATOS PRINCIPALES ── *@
+                <h6 class="text-muted mb-3">Datos del Semillero</h6>
                 <div class="row">
                     @if (editando)
                     {
@@ -37,13 +42,129 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Fundación</label>
-                        <input class="form-control" type="date" @bind="campoFechaFundacion" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaFundacion?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaFundacion = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Universidad (ID)</label>
-                        <input class="form-control" type="number" @bind="campoUniversidad" />
+                        <label class="form-label">Universidad</label>
+                        <select class="form-select" @bind="campoUniversidad">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var u in universidades)
+                            {
+                                <option value="@u["id"]">@u["nombre"]</option>
+                            }
+                        </select>
                     </div>
                 </div>
+
+                @* ── INTERMEDIA: LÍNEAS DEL SEMILLERO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Líneas de Investigación</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="lineaSeleccionada">
+                            <option value="">-- Seleccione Línea --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarLinea">
+                            + Agregar
+                        </button>
+                    </div>
+                </div>
+                @if (lineasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Línea</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var id in lineasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(lineas, id, "id", "nombre")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarLinea(id)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay líneas agregadas.</div>
+                }
+
+                @* ── INTERMEDIA: PARTICIPANTES DEL SEMILLERO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Participantes del Semillero</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Seleccione Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Rol" @bind="participaRolTemp" />
+                    </div>
+                    <div class="col-md-2">
+                        <input class="form-control" type="date" placeholder="Fecha Ini"
+                            value="@participaFechaIniTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => participaFechaIniTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-2">
+                        <input class="form-control" type="date" placeholder="Fecha Fin"
+                            value="@participaFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => participaFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarParticipante">+</button>
+                    </div>
+                </div>
+                @if (participantesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Docente</th><th>Rol</th><th>Fecha Ini</th><th>Fecha Fin</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in participantesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreDocente(p.docente)</td>
+                                    <td>@p.rol</td>
+                                    <td>@p.fecha_ini?.ToString("yyyy-MM-dd")</td>
+                                    <td>@p.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarParticipante(p)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay participantes agregados.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -61,21 +182,21 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th><th>Nombre</th><th>Fecha Fundación</th><th>Universidad</th><th>Acciones</th>
-                </tr>
+                <tr><th>Id</th><th>Nombre</th><th>Fecha Fundación</th><th>Universidad</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["fecha_fundacion"]</td>
-                        <td>@reg["universidad"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("nombre")</td>
+                        <td>@reg.GetValueOrDefault("fecha_fundacion")</td>
+                        <td>@ObtenerNombre(universidades, reg.GetValueOrDefault("universidad"), "id", "nombre")</td>
                         <td>
-                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                            <button class="btn btn-warning btn-sm me-1"
+                                @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm"
+                                @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -90,19 +211,39 @@
 </div>
 
 @code {
+    private class ParticipaSemilleroTemp
+    {
+        public int docente { get; set; }
+        public string? rol { get; set; }
+        public DateTime? fecha_ini { get; set; }
+        public DateTime? fecha_fin { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
-        private List<Dictionary<string, object?>> Universidad = new();
+    private List<Dictionary<string, object?>> universidades = new();
+    private List<Dictionary<string, object?>> lineas = new();
+    private List<Dictionary<string, object?>> docentes = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
     private DateTime? campoFechaFundacion = null;
     private int? campoUniversidad = null;
 
+    // Intermedias
+    private List<int> lineasAgregadas = new();
+    private int? lineaSeleccionada = null;
+    private List<ParticipaSemilleroTemp> participantesAgregados = new();
+    private int? docenteSeleccionado = null;
+    private string participaRolTemp = string.Empty;
+    private DateTime? participaFechaIniTemp = null, participaFechaFinTemp = null;
+
     protected override async Task OnInitializedAsync()
-    {    
-       Universidad = await Api.ListarAsync("Universidad"); 
+    {
+        universidades = await Api.ListarAsync("universidad");
+        lineas = await Api.ListarAsync("linea_investigacion");
+        docentes = await Api.ListarAsync("docente");
         await CargarRegistros();
     }
-
 
     private async Task CargarRegistros()
     {
@@ -115,42 +256,149 @@
     {
         editando = false; campoId = string.Empty; campoNombre = string.Empty;
         campoFechaFundacion = null; campoUniversidad = null;
+        lineasAgregadas = new(); lineaSeleccionada = null;
+        participantesAgregados = new(); docenteSeleccionado = null;
+        participaRolTemp = string.Empty; participaFechaIniTemp = null; participaFechaFinTemp = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
-        if (DateTime.TryParse(reg["fecha_fundacion"]?.ToString(), out DateTime f)) campoFechaFundacion = f;
-        campoUniversidad = reg["universidad"] as int?;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoNombre = reg.GetValueOrDefault("nombre")?.ToString() ?? "";
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_fundacion")?.ToString(), out DateTime f))
+            campoFechaFundacion = f;
+        if (int.TryParse(reg.GetValueOrDefault("universidad")?.ToString(), out int u))
+            campoUniversidad = u;
+
+        // Cargar líneas
+        var todasLineas = await Api.ListarAsync("semillero_linea");
+        lineasAgregadas = todasLineas
+            .Where(x => x.GetValueOrDefault("semillero")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("linea_investigacion")))
+            .ToList();
+
+        // Cargar participantes
+        var todosParticipantes = await Api.ListarAsync("participa_semillero");
+        participantesAgregados = todosParticipantes
+            .Where(x => x.GetValueOrDefault("semillero")?.ToString() == campoId)
+            .Select(x => new ParticipaSemilleroTemp
+            {
+                docente = Convert.ToInt32(x.GetValueOrDefault("docente")),
+                rol = x.GetValueOrDefault("rol")?.ToString(),
+                fecha_ini = DateTime.TryParse(x.GetValueOrDefault("fecha_ini")?.ToString(), out DateTime fi) ? fi : null,
+                fecha_fin = DateTime.TryParse(x.GetValueOrDefault("fecha_fin")?.ToString(), out DateTime ff) ? ff : null
+            }).ToList();
+
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarLinea()
+    {
+        if (lineaSeleccionada == null) return;
+        if (lineasAgregadas.Contains(lineaSeleccionada.Value))
+        { mensaje = "Ya fue agregada."; exito = false; return; }
+        lineasAgregadas.Add(lineaSeleccionada.Value);
+        lineaSeleccionada = null;
+    }
+    private void QuitarLinea(int id) => lineasAgregadas.Remove(id);
+
+    private void AgregarParticipante()
+    {
+        if (docenteSeleccionado == null) return;
+        if (participantesAgregados.Any(p => p.docente == docenteSeleccionado.Value))
+        { mensaje = "Ese docente ya fue agregado."; exito = false; return; }
+        participantesAgregados.Add(new ParticipaSemilleroTemp
+        {
+            docente = docenteSeleccionado.Value,
+            rol = participaRolTemp,
+            fecha_ini = participaFechaIniTemp,
+            fecha_fin = participaFechaFinTemp
+        });
+        docenteSeleccionado = null; participaRolTemp = string.Empty;
+        participaFechaIniTemp = null; participaFechaFinTemp = null;
+    }
+    private void QuitarParticipante(ParticipaSemilleroTemp p) => participantesAgregados.Remove(p);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
             ["nombre"] = campoNombre,
-            ["fecha_fundacion"] = campoFechaFundacion,
+            ["fecha_fundacion"] = campoFechaFundacion?.ToString("yyyy-MM-dd"),
             ["universidad"] = campoUniversidad
         };
 
-        var resultado = editando
-            ? await Api.ActualizarAsync("semillero", "id", campoId, datos)
-            : await Api.CrearAsync("semillero", datos);
+        (bool exito, string mensaje) resultado;
+        if (editando)
+            resultado = await Api.ActualizarAsync("semillero", "id", campoId, datos);
+        else
+            resultado = await Api.CrearAsync("semillero", datos);
 
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+        if (!resultado.exito) { exito = false; mensaje = resultado.mensaje; return; }
+
+        string semilleroId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("semillero");
+            semilleroId = todos.LastOrDefault()?.GetValueOrDefault("id")?.ToString() ?? "";
+        }
+
+        // Sincronizar semillero_linea
+        if (editando)
+        {
+            var existentes = await Api.ListarAsync("semillero_linea");
+            foreach (var x in existentes.Where(x => x.GetValueOrDefault("semillero")?.ToString() == semilleroId))
+                await Api.EliminarAsync("semillero_linea", semilleroId, x.GetValueOrDefault("linea_investigacion")?.ToString() ?? "");
+        }
+        foreach (var lId in lineasAgregadas)
+            await Api.CrearAsync("semillero_linea", new Dictionary<string, object?>
+            { ["semillero"] = int.Parse(semilleroId), ["linea_investigacion"] = lId });
+
+        // Sincronizar participa_semillero
+        if (editando)
+        {
+            var existentes = await Api.ListarAsync("participa_semillero");
+            foreach (var x in existentes.Where(x => x.GetValueOrDefault("semillero")?.ToString() == semilleroId))
+                await Api.EliminarAsync("participa_semillero", x.GetValueOrDefault("docente")?.ToString() ?? "", semilleroId);
+        }
+        foreach (var p in participantesAgregados)
+            await Api.CrearAsync("participa_semillero", new Dictionary<string, object?>
+            {
+                ["docente"] = p.docente,
+                ["semillero"] = int.Parse(semilleroId),
+                ["rol"] = p.rol,
+                ["fecha_ini"] = p.fecha_ini?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = p.fecha_fin?.ToString("yyyy-MM-dd")
+            });
+
+        exito = true;
+        mensaje = editando ? "Semillero actualizado correctamente" : "Semillero creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("semillero", "id", reg["id"]?.ToString() ?? "");
+        var resultado = await Api.EliminarAsync("semillero", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
         exito = resultado.exito; mensaje = resultado.mensaje;
         if (exito) await CargarRegistros();
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreDocente(int id)
+    {
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

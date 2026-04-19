@@ -19,26 +19,43 @@
     }
 
     @if (mostrarFormulario)
-    {
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación Proyecto — Línea</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Proyecto</label>
-                        <input class="form-control" type="number" @bind="campoProyecto" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Línea Investigación</label>
-                        <input class="form-control" type="number" @bind="campoLinea" />
-                    </div>
-                </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-            </div>
-        </div>
-    }
+{
+    <div class="card mb-3">
+        <div class="card-header">Nueva Relación Proyecto — Línea</div>
+        <div class="card-body">
+            <div class="row">
 
+                <!-- SELECT PROYECTO -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Proyecto</label>
+                    <select class="form-select" @bind="campoProyecto">
+                        <option value="">Seleccione un proyecto</option>
+                        @foreach (var p in Proyecto)
+                        {
+                            <option value="@p["id"]">@p["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- SELECT LINEA -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Línea de Investigación</label>
+                    <select class="form-select" @bind="campoLinea">
+                        <option value="">Seleccione una línea</option>
+                        @foreach (var l in LineaInvestigacion)
+                        {
+                            <option value="@l["id"]">@l["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
+            </div>
+
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        </div>
+    </div>
+}
     @if (cargando)
     {
         <div class="d-flex justify-content-center my-4">

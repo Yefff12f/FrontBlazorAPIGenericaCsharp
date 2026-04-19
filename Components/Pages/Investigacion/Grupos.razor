@@ -5,7 +5,6 @@
 <div class="container mt-4">
     <h3>Grupos de Investigación</h3>
 
-    @* ───────── ALERTA DE EXITO O ERROR ───────── *@
     @if (!string.IsNullOrEmpty(mensaje))
     {
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
@@ -14,119 +13,223 @@
         </div>
     }
 
-    @* ───────── BOTON PARA MOSTRAR FORMULARIO DE CREAR ───────── *@
     @if (!mostrarFormulario)
     {
         <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Grupo</button>
     }
 
-    @* ───────── FORMULARIO (CREAR / EDITAR) ───────── *@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">
+            <div class="card-header fw-bold">
                 @(editando ? "Editar Grupo" : "Nuevo Grupo")
             </div>
             <div class="card-body">
+
+                @* ── DATOS PRINCIPALES ── *@
+                <h6 class="text-muted mb-3">Datos del Grupo</h6>
                 <div class="row">
-                                <div class="row">
-                        @if (editando)
-                        {
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Id</label>
-                                <input class="form-control" @bind="campoId" disabled />
-                            </div>
-                        }
+                    @if (editando)
+                    {
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Nombre</label>
-                            <input class="form-control" @bind="campoNombre" />
+                            <label class="form-label">Id</label>
+                            <input class="form-control" @bind="campoId" disabled />
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">URL Grupo LAC</label>
-                            <input class="form-control" @bind="campoUrlGrupLAC" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Categoría</label>
-                            <input class="form-control" @bind="campoCategoria" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Convocatoria</label>
-                            <input class="form-control" @bind="campoConvocatoria" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Fecha Fundación</label>
-                            <input class="form-control" type="date" @bind="campoFechaFundacion" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Universidad (ID)</label>
-                            <input class="form-control" type="number" @bind="campoUniversidad" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Interno</label>
-                            <input class="form-check-input" type="checkbox" @bind="campoInterno" />
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Ámbito</label>
-                            <input class="form-control" @bind="campoAmbito" />
-                        </div>
+                    }
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" @bind="campoNombre" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">URL Grupo LAC</label>
+                        <input class="form-control" @bind="campoUrlGrupLAC" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoría</label>
+                        <input class="form-control" @bind="campoCategoria" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Convocatoria</label>
+                        <input class="form-control" @bind="campoConvocatoria" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Fundación</label>
+                        <input class="form-control" type="date"
+                            value="@campoFechaFundacion?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaFundacion = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Universidad (ID)</label>
+                        <input class="form-control" type="number" @bind="campoUniversidad" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Interno</label>
+                        <input class="form-check-input mt-2" type="checkbox" @bind="campoInterno" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ámbito</label>
+                        <input class="form-control" @bind="campoAmbito" />
                     </div>
                 </div>
+
+                @* ── TABLA INTERMEDIA: LÍNEAS DEL GRUPO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Líneas de Investigación del Grupo</h6>
+                <div class="row mb-2">
+                    <div class="col-md-8">
+                        <select class="form-select" @bind="lineaSeleccionada">
+                            <option value="">-- Seleccione una Línea --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarLinea">
+                            + Agregar Línea
+                        </button>
+                    </div>
+                </div>
+                @if (lineasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Línea</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var l in lineasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(lineas, l, "id", "nombre")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarLinea(l)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay líneas agregadas.</div>
+                }
+
+                @* ── TABLA INTERMEDIA: PARTICIPANTES DEL GRUPO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Participantes del Grupo</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Seleccione Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Categoría" @bind="participaCategoriaTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Convocatoria" @bind="participaConvocatoriaTemp" />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarParticipante">
+                            + Agregar
+                        </button>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input class="form-control" type="date" placeholder="Fecha Inicio"
+                            value="@participaFechaIniTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => participaFechaIniTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" type="date" placeholder="Fecha Fin"
+                            value="@participaFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => participaFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                </div>
+                @if (participantesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Docente</th><th>Categoría</th><th>Convocatoria</th><th>Fecha Ini</th><th>Fecha Fin</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in participantesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreDocente(p.docente)</td>
+                                    <td>@p.categoria</td>
+                                    <td>@p.convocatoria</td>
+                                    <td>@p.fecha_ini?.ToString("yyyy-MM-dd")</td>
+                                    <td>@p.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm"
+                                            @onclick="() => QuitarParticipante(p)">
+                                            Quitar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay participantes agregados.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
         </div>
     }
 
-    @* ───────── SPINNER DE CARGA ───────── *@
+    @* ── SPINNER ── *@
     @if (cargando)
     {
         <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
 
-    @* ───────── TABLA DE REGISTROS ───────── *@
+    @* ── TABLA PRINCIPAL ── *@
     @if (!cargando && registros.Any())
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>Id</th>
-                    <th>Nombre</th>
-                    <th>URL LAC</th>
-                    <th>Categoría</th>
-                    <th>Convocatoria</th>
-                    <th>Fecha</th>
-                    <th>Universidad</th>
-                    <th>Interno</th>
-                    <th>Ámbito</th>
-                    <th>Acciones</th>
+                    <th>Id</th><th>Nombre</th><th>URL LAC</th><th>Categoría</th>
+                    <th>Convocatoria</th><th>Fecha</th><th>Universidad</th>
+                    <th>Interno</th><th>Ámbito</th><th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["url_grupLAC"]</td>
-                        <td>@reg["categoria"]</td>
-                        <td>@reg["convocatoria"]</td>
-                        <td>@(reg["fecha_fundacion"]?.ToString())</td>
-                        <td>@reg["universidad"]</td>
-                        <td>@reg["interno"]</td>
-                        <td>@reg["ambito"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("nombre")</td>
+                        <td>@reg.GetValueOrDefault("url_grupLAC")</td>
+                        <td>@reg.GetValueOrDefault("categoria")</td>
+                        <td>@reg.GetValueOrDefault("convocatoria")</td>
+                        <td>@reg.GetValueOrDefault("fecha_fundacion")</td>
+                        <td>@reg.GetValueOrDefault("universidad")</td>
+                        <td>@reg.GetValueOrDefault("interno")</td>
+                        <td>@reg.GetValueOrDefault("ambito")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">
-                                Editar
-                            </button>
+                                @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">
-                                Eliminar
-                            </button>
+                                @onclick="() => EliminarRegistro(reg)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -134,41 +237,60 @@
         </table>
     }
 
-    @* ───────── MENSAJE CUANDO NO HAY DATOS ───────── *@
     @if (!cargando && !registros.Any())
     {
-        <div class="alert alert-warning">No se encontraron registros en la tabla grupo_investigacion.</div>
+        <div class="alert alert-warning">No se encontraron registros en grupo_investigacion.</div>
     }
 </div>
 
 @code {
-    // ───────── VARIABLES DE ESTADO ─────────
 
+    // ── CLASE AUXILIAR PARA PARTICIPANTES ──
+    private class ParticipaGrupoTemp
+    {
+        public int docente { get; set; }
+        public string? categoria { get; set; }
+        public string? convocatoria { get; set; }
+        public DateTime? fecha_ini { get; set; }
+        public DateTime? fecha_fin { get; set; }
+    }
+
+    // ── LISTAS PRINCIPALES ──
     private List<Dictionary<string, object?>> registros = new();
-    private bool cargando = true;
-    private bool mostrarFormulario = false;
-    private bool editando = false;
-    private string mensaje = string.Empty;
-    private bool exito = false;
+    private List<Dictionary<string, object?>> lineas = new();
+    private List<Dictionary<string, object?>> docentes = new();
 
-    // Campos del formulario para grupo de investigación
-    private string campoId = string.Empty; // solo lectura en edición
-    private string campoNombre = string.Empty;
-    private string campoUrlGrupLAC = string.Empty;
-    private string campoCategoria = string.Empty;
-    private string campoConvocatoria = string.Empty;
+    // ── ESTADO ──
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty;
+
+    // ── CAMPOS GRUPO ──
+    private string campoId = string.Empty, campoNombre = string.Empty;
+    private string campoUrlGrupLAC = string.Empty, campoCategoria = string.Empty;
+    private string campoConvocatoria = string.Empty, campoAmbito = string.Empty;
     private DateTime? campoFechaFundacion = null;
     private int? campoUniversidad = null;
     private bool campoInterno = false;
-    private string campoAmbito = string.Empty;
 
-    // ───────── CICLO DE VIDA ─────────
+    // ── INTERMEDIAS: LÍNEAS ──
+    private List<int> lineasAgregadas = new();
+    private int? lineaSeleccionada = null;
+
+    // ── INTERMEDIAS: PARTICIPANTES ──
+    private List<ParticipaGrupoTemp> participantesAgregados = new();
+    private int? docenteSeleccionado = null;
+    private string participaCategoriaTemp = string.Empty;
+    private string participaConvocatoriaTemp = string.Empty;
+    private DateTime? participaFechaIniTemp = null;
+    private DateTime? participaFechaFinTemp = null;
+
+    // ── CICLO DE VIDA ──
     protected override async Task OnInitializedAsync()
     {
+        lineas = await Api.ListarAsync("linea_investigacion");
+        docentes = await Api.ListarAsync("docente");
         await CargarRegistros();
     }
-
-    // ───────── METODOS ─────────
 
     private async Task CargarRegistros()
     {
@@ -177,88 +299,206 @@
         cargando = false;
     }
 
+    // ── NUEVO ──
     private void NuevoRegistro()
     {
-        editando = false;
-        campoId = string.Empty;
-        campoNombre = string.Empty;
-        campoUrlGrupLAC = string.Empty;
-        campoCategoria = string.Empty;
-        campoConvocatoria = string.Empty;
-        campoFechaFundacion = null;
-        campoUniversidad = null;
-        campoInterno = false;
-        campoAmbito = string.Empty;
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        editando = false; campoId = string.Empty; campoNombre = string.Empty;
+        campoUrlGrupLAC = string.Empty; campoCategoria = string.Empty;
+        campoConvocatoria = string.Empty; campoAmbito = string.Empty;
+        campoFechaFundacion = null; campoUniversidad = null; campoInterno = false;
+        lineasAgregadas = new(); lineaSeleccionada = null;
+        participantesAgregados = new(); docenteSeleccionado = null;
+        participaCategoriaTemp = string.Empty; participaConvocatoriaTemp = string.Empty;
+        participaFechaIniTemp = null; participaFechaFinTemp = null;
+        mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    // ── EDITAR ──
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
-        campoId = reg["id"]?.ToString() ?? string.Empty;
-        campoNombre = reg["nombre"]?.ToString() ?? string.Empty;
-        campoUrlGrupLAC = reg["url_grupLAC"]?.ToString() ?? string.Empty;
-        campoCategoria = reg["categoria"]?.ToString() ?? string.Empty;
-        campoConvocatoria = reg["convocatoria"]?.ToString() ?? string.Empty;
-        if (DateTime.TryParse(reg["fecha_fundacion"]?.ToString(), out DateTime f))
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoNombre = reg.GetValueOrDefault("nombre")?.ToString() ?? "";
+        campoUrlGrupLAC = reg.GetValueOrDefault("url_grupLAC")?.ToString() ?? "";
+        campoCategoria = reg.GetValueOrDefault("categoria")?.ToString() ?? "";
+        campoConvocatoria = reg.GetValueOrDefault("convocatoria")?.ToString() ?? "";
+        campoAmbito = reg.GetValueOrDefault("ambito")?.ToString() ?? "";
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_fundacion")?.ToString(), out DateTime f))
             campoFechaFundacion = f;
-        campoUniversidad = reg["universidad"] as int?;
-        campoInterno = reg["interno"] as bool? ?? false;
-        campoAmbito = reg["ambito"]?.ToString() ?? string.Empty;
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        if (int.TryParse(reg.GetValueOrDefault("universidad")?.ToString(), out int u))
+            campoUniversidad = u;
+        campoInterno = reg.GetValueOrDefault("interno") as bool? ?? false;
+
+        // Cargar líneas ya asociadas al grupo
+        var todasLineas = await Api.ListarAsync("grupo_linea");
+        lineasAgregadas = todasLineas
+            .Where(x => x.GetValueOrDefault("grupo_investigacion")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("linea_investigacion")))
+            .ToList();
+
+        // Cargar participantes ya asociados al grupo
+        var todosParticipantes = await Api.ListarAsync("participa_grupo");
+        participantesAgregados = todosParticipantes
+            .Where(x => x.GetValueOrDefault("grupo_investigacion")?.ToString() == campoId)
+            .Select(x => new ParticipaGrupoTemp
+            {
+                docente = Convert.ToInt32(x.GetValueOrDefault("docente")),
+                categoria = x.GetValueOrDefault("categoria")?.ToString(),
+                convocatoria = x.GetValueOrDefault("convocatoria")?.ToString(),
+                fecha_ini = DateTime.TryParse(x.GetValueOrDefault("fecha_ini")?.ToString(), out DateTime fi) ? fi : null,
+                fecha_fin = DateTime.TryParse(x.GetValueOrDefault("fecha_fin")?.ToString(), out DateTime ff) ? ff : null
+            }).ToList();
+
+        mostrarFormulario = true; mensaje = string.Empty;
     }
 
+    // ── AGREGAR LÍNEA ──
+    private void AgregarLinea()
+    {
+        if (lineaSeleccionada == null) return;
+        if (lineasAgregadas.Contains(lineaSeleccionada.Value))
+        {
+            mensaje = "Esa línea ya fue agregada."; exito = false; return;
+        }
+        lineasAgregadas.Add(lineaSeleccionada.Value);
+        lineaSeleccionada = null;
+    }
+
+    private void QuitarLinea(int lineaId) => lineasAgregadas.Remove(lineaId);
+
+    // ── AGREGAR PARTICIPANTE ──
+    private void AgregarParticipante()
+    {
+        if (docenteSeleccionado == null) return;
+        if (participantesAgregados.Any(p => p.docente == docenteSeleccionado.Value))
+        {
+            mensaje = "Ese docente ya fue agregado."; exito = false; return;
+        }
+        participantesAgregados.Add(new ParticipaGrupoTemp
+        {
+            docente = docenteSeleccionado.Value,
+            categoria = participaCategoriaTemp,
+            convocatoria = participaConvocatoriaTemp,
+            fecha_ini = participaFechaIniTemp,
+            fecha_fin = participaFechaFinTemp
+        });
+        docenteSeleccionado = null;
+        participaCategoriaTemp = string.Empty;
+        participaConvocatoriaTemp = string.Empty;
+        participaFechaIniTemp = null;
+        participaFechaFinTemp = null;
+    }
+
+    private void QuitarParticipante(ParticipaGrupoTemp p) => participantesAgregados.Remove(p);
+
+    // ── GUARDAR ──
     private async Task GuardarRegistro()
     {
+        // 1. Guardar grupo principal
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre,
-            ["url_grupLAC"] = campoUrlGrupLAC,
-            ["categoria"] = campoCategoria,
-            ["convocatoria"] = campoConvocatoria,
-            ["fecha_fundacion"] = campoFechaFundacion,
+            ["nombre"] = campoNombre, ["url_grupLAC"] = campoUrlGrupLAC,
+            ["categoria"] = campoCategoria, ["convocatoria"] = campoConvocatoria,
+            ["fecha_fundacion"] = campoFechaFundacion?.ToString("yyyy-MM-dd"),
             ["universidad"] = campoUniversidad,
-            ["interno"] = campoInterno,
-            ["ambito"] = campoAmbito
+            ["interno"] = campoInterno, ["ambito"] = campoAmbito
         };
 
+        (bool exito, string mensaje) resultado;
+        if (editando)
+            resultado = await Api.ActualizarAsync("grupo_investigacion", "id", campoId, datos);
+        else
+            resultado = await Api.CrearAsync("grupo_investigacion", datos);
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        // Obtener el id del grupo recién creado o editado
+        string grupoId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("grupo_investigacion");
+            var ultimo = todos.LastOrDefault();
+            grupoId = ultimo?.GetValueOrDefault("id")?.ToString() ?? "";
+        }
+
+        // 2. Guardar líneas (eliminar las existentes y reinsertar)
         if (editando)
         {
-            var resultado = await Api.ActualizarAsync("grupo_investigacion", "id", campoId, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
+            var lineasExistentes = await Api.ListarAsync("grupo_linea");
+            foreach (var l in lineasExistentes
+                .Where(x => x.GetValueOrDefault("grupo_investigacion")?.ToString() == grupoId))
+            {
+                await Api.EliminarAsync("grupo_linea",
+                    grupoId,
+                    l.GetValueOrDefault("linea_investigacion")?.ToString() ?? "");
+            }
         }
-        else
+        foreach (var lineaId in lineasAgregadas)
         {
-            var resultado = await Api.CrearAsync("grupo_investigacion", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
+            await Api.CrearAsync("grupo_linea", new Dictionary<string, object?>
+            {
+                ["grupo_investigacion"] = int.Parse(grupoId),
+                ["linea_investigacion"] = lineaId
+            });
         }
 
-        if (exito)
+        // 3. Guardar participantes (eliminar los existentes y reinsertar)
+        if (editando)
         {
-            mostrarFormulario = false;
-            await CargarRegistros();
+            var participExistentes = await Api.ListarAsync("participa_grupo");
+            foreach (var p in participExistentes
+                .Where(x => x.GetValueOrDefault("grupo_investigacion")?.ToString() == grupoId))
+            {
+                await Api.EliminarAsync("participa_grupo",
+                    p.GetValueOrDefault("docente")?.ToString() ?? "",
+                    grupoId);
+            }
         }
+        foreach (var p in participantesAgregados)
+        {
+            await Api.CrearAsync("participa_grupo", new Dictionary<string, object?>
+            {
+                ["docente"] = p.docente,
+                ["grupo_investigacion"] = int.Parse(grupoId),
+                ["categoria"] = p.categoria,
+                ["convocatoria"] = p.convocatoria,
+                ["fecha_ini"] = p.fecha_ini?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = p.fecha_fin?.ToString("yyyy-MM-dd")
+            });
+        }
+
+        exito = true;
+        mensaje = editando ? "Grupo actualizado correctamente" : "Grupo creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
+    // ── ELIMINAR ──
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        string id = reg["id"]?.ToString() ?? string.Empty;
+        string id = reg.GetValueOrDefault("id")?.ToString() ?? "";
         var resultado = await Api.EliminarAsync("grupo_investigacion", "id", id);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
-        if (exito)
-        {
-            await CargarRegistros();
-        }
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
     }
 
-    private void Cancelar()
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    // ── HELPERS ──
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
     {
-        mostrarFormulario = false;
-        mensaje = string.Empty;
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreDocente(int id)
+    {
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombres"]} {item["apellidos"]}";
     }
 }

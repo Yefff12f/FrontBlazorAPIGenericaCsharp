@@ -18,27 +18,45 @@
         <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
     }
 
-    @if (mostrarFormulario)
-    {
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación Programa — Práctica Estrategia</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Programa</label>
-                        <input class="form-control" type="number" @bind="campoPrograma" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">ID Práctica Estrategia</label>
-                        <input class="form-control" type="number" @bind="campoPractica" />
-                    </div>
-                </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-            </div>
-        </div>
-    }
+    
+@if (mostrarFormulario)
+{
+    <div class="card mb-3">
+        <div class="card-header">Nueva Relación Programa — Práctica Estrategia</div>
+        <div class="card-body">
+            <div class="row">
 
+                <!-- SELECT PROGRAMA -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Programa</label>
+                    <select class="form-select" @bind="campoPrograma">
+                        <option value="">Seleccione un programa</option>
+                        @foreach (var p in programas)
+                        {
+                            <option value="@p["id"]">@p["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- SELECT PRACTICA -->
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Práctica Estrategia</label>
+                    <select class="form-select" @bind="campoPractica">
+                        <option value="">Seleccione una práctica</option>
+                        @foreach (var pr in practicas)
+                        {
+                            <option value="@pr["id"]">@pr["nombre"]</option>
+                        }
+                    </select>
+                </div>
+
+            </div>
+
+            <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+            <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+        </div>
+    </div>
+}
     @if (cargando)
     {
         <div class="d-flex justify-content-center my-4">
