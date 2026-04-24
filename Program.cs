@@ -1,33 +1,62 @@
 using FrontBlazor_AppiGenericaCsharp.Components;
 using FrontBlazor_AppiGenericaCsharp.Services;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Agregar servicios de Blazor Server
+// 🔹 Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Configurar HttpClient para conectarse a la API
-// La URL base apunta a la API ApiGenericaCsharp que corre en el puerto 5018
+// 🔐 AUTH (ESTE ES EL BUENO)
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/login"; // 👈 ESTA ES LA CLAVE
+    });
+
+builder.Services.AddAuthorizationCore();
+builder.Services.AddCascadingAuthenticationState();
+
+// 🔹 Provider
+builder.Services.AddScoped<CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+    sp.GetRequiredService<CustomAuthenticationStateProvider>());
+
+// 🔹 Auth Service
+builder.Services.AddScoped<AuthenticationService>(sp =>
+    new AuthenticationService(
+        sp.GetRequiredService<CustomAuthenticationStateProvider>(),
+        sp.GetRequiredService<IJSRuntime>()
+    ));
+
+// 🔹 HttpClient
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("http://localhost:5018")
 });
 
-// ✅ LÍNEA AGREGADA: registra ApiService en el contenedor de dependencias
-// Sin esto, Blazor no puede inyectar ApiService con @inject en las páginas
-builder.Services.AddScoped<ApiService>();
+// 🔹 ApiService
+builder.Services.AddScoped<ApiService>(sp =>
+    new ApiService(
+        sp.GetRequiredService<HttpClient>(),
+        sp.GetRequiredService<AuthenticationService>(),
+        sp.GetRequiredService<NavigationManager>()
+    ));
 
 var app = builder.Build();
 
+// 🔹 Pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseExceptionHandler("/Error");
 }
 
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

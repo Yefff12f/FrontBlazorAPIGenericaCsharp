@@ -21,8 +21,13 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Proyecto" : "Nuevo Proyecto")</div>
+            <div class="card-header fw-bold">
+                @(editando ? "Editar Proyecto" : "Nuevo Proyecto")
+            </div>
             <div class="card-body">
+
+                @* ── DATOS PRINCIPALES ── *@
+                <h6 class="text-muted mb-3">Datos del Proyecto</h6>
                 <div class="row">
                     @if (editando)
                     {
@@ -31,23 +36,275 @@
                             <input class="form-control" @bind="campoId" disabled />
                         </div>
                     }
-
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Nombre</label>
                         <input class="form-control" @bind="campoNombre" />
                     </div>
-
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Inicio</label>
-                        <input class="form-control" type="date" @bind="campoFechaInicio" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaInicio?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaInicio = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
-
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha Fin</label>
-                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                        <input class="form-control" type="date"
+                            value="@campoFechaFin?.ToString("yyyy-MM-dd")"
+                            @onchange="e => campoFechaFin = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
                     </div>
                 </div>
 
+                @* ── INTERMEDIA: ÁREAS CONOCIMIENTO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Conocimiento</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="acSeleccionado">
+                            <option value="">-- Seleccione Área Conocimiento --</option>
+                            @foreach (var a in areasConocimiento)
+                            {
+                                <option value="@a["id"]">@a["area"] — @a["disciplina"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAc">+ Agregar</button>
+                    </div>
+                </div>
+                @if (acAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Área Conocimiento</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in acAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreArea(id)</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAc(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay áreas de conocimiento agregadas.</div> }
+
+                @* ── INTERMEDIA: ÁREAS APLICACIÓN ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Aplicación</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="aaSeleccionado">
+                            <option value="">-- Seleccione Área Aplicación --</option>
+                            @foreach (var a in areasAplicacion)
+                            {
+                                <option value="@a["id"]">@a["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAa">+ Agregar</button>
+                    </div>
+                </div>
+                @if (aaAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Área Aplicación</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in aaAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(areasAplicacion, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAa(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay áreas de aplicación agregadas.</div> }
+
+                @* ── INTERMEDIA: ALIADOS ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Aliados del Proyecto</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="aliadoSeleccionado">
+                            <option value="">-- Seleccione Aliado --</option>
+                            @foreach (var a in aliados)
+                            {
+                                <option value="@a["id"]">@a["nombre"] @a["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAliado">+ Agregar</button>
+                    </div>
+                </div>
+                @if (aliadosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Aliado</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in aliadosAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreAliado(id)</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAliado(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay aliados agregados.</div> }
+
+                @* ── INTERMEDIA: LÍNEAS ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Líneas de Investigación</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="lineaSeleccionada">
+                            <option value="">-- Seleccione Línea --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarLinea">+ Agregar</button>
+                    </div>
+                </div>
+                @if (lineasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Línea</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in lineasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(lineas, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarLinea(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay líneas agregadas.</div> }
+
+                @* ── INTERMEDIA: ODS ── *@
+                <hr />
+                <h6 class="text-muted mb-2">ODS del Proyecto</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="odsSeleccionado">
+                            <option value="">-- Seleccione ODS --</option>
+                            @foreach (var o in ods)
+                            {
+                                <option value="@o["id"]">@o["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarOds">+ Agregar</button>
+                    </div>
+                </div>
+                @if (odsAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>ODS</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in odsAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(ods, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarOds(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay ODS agregados.</div> }
+
+                @* ── INTERMEDIA: PALABRAS CLAVE ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Palabras Clave</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="terminoSeleccionado">
+                            <option value="">-- Seleccione Término --</option>
+                            @foreach (var t in terminos)
+                            {
+                                <option value="@t["termino"]">@t["termino"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarTermino">+ Agregar</button>
+                    </div>
+                </div>
+                @if (terminosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Término</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var t in terminosAgregados)
+                            {
+                                <tr>
+                                    <td>@t</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarTermino(t)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay palabras clave agregadas.</div> }
+
+                @* ── INTERMEDIA: DESARROLLA (DOCENTES) ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Docentes que Desarrollan el Proyecto</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Seleccione Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Rol" @bind="desarrollaRolTemp" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Descripción" @bind="desarrollaDescripcionTemp" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <button class="btn btn-outline-primary" @onclick="AgregarDocente">+ Agregar Docente</button>
+                    </div>
+                </div>
+                @if (docentesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary">
+                            <tr><th>Docente</th><th>Rol</th><th>Descripción</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in docentesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreDocente(d.docente)</td>
+                                    <td>@d.rol</td>
+                                    <td>@d.descripcion</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarDocente(d)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay docentes agregados.</div> }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -65,22 +322,16 @@
     {
         <table class="table table-striped table-hover">
             <thead class="table-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Nombre</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>Id</th><th>Nombre</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 @foreach (var reg in registros)
                 {
                     <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["fecha_inicio"]</td>
-                        <td>@reg["fecha_fin"]</td>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("nombre")</td>
+                        <td>@reg.GetValueOrDefault("fecha_inicio")</td>
+                        <td>@reg.GetValueOrDefault("fecha_fin")</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
@@ -98,14 +349,52 @@
 </div>
 
 @code {
+    private class DesarrollaTemp
+    {
+        public int docente { get; set; }
+        public string? rol { get; set; }
+        public string? descripcion { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> areasConocimiento = new();
+    private List<Dictionary<string, object?>> areasAplicacion = new();
+    private List<Dictionary<string, object?>> aliados = new();
+    private List<Dictionary<string, object?>> lineas = new();
+    private List<Dictionary<string, object?>> ods = new();
+    private List<Dictionary<string, object?>> terminos = new();
+    private List<Dictionary<string, object?>> docentes = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
-
     private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
-    private DateTime? campoFechaInicio = null;
-    private DateTime? campoFechaFin = null;
+    private DateTime? campoFechaInicio = null, campoFechaFin = null;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    // Intermedias
+    private List<int> acAgregados = new();
+    private List<int> aaAgregados = new();
+    private List<int> aliadosAgregados = new();
+    private List<int> lineasAgregadas = new();
+    private List<int> odsAgregados = new();
+    private List<string> terminosAgregados = new();
+    private List<DesarrollaTemp> docentesAgregados = new();
+
+    private int? acSeleccionado = null, aaSeleccionado = null;
+    private int? aliadoSeleccionado = null, lineaSeleccionada = null, odsSeleccionado = null;
+    private string? terminoSeleccionado = null;
+    private int? docenteSeleccionado = null;
+    private string desarrollaRolTemp = string.Empty, desarrollaDescripcionTemp = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        areasConocimiento = await Api.ListarAsync("area_conocimiento");
+        areasAplicacion = await Api.ListarAsync("area_aplicacion");
+        aliados = await Api.ListarAsync("aliado");
+        lineas = await Api.ListarAsync("linea_investigacion");
+        ods = await Api.ListarAsync("objetivos_desarrollo_sostenible");
+        terminos = await Api.ListarAsync("termino_clave");
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -116,68 +405,180 @@
 
     private void NuevoRegistro()
     {
-        editando = false;
-        campoId = string.Empty;
-        campoNombre = string.Empty;
-        campoFechaInicio = null;
-        campoFechaFin = null;
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        editando = false; campoId = string.Empty; campoNombre = string.Empty;
+        campoFechaInicio = null; campoFechaFin = null;
+        acAgregados = new(); aaAgregados = new(); aliadosAgregados = new();
+        lineasAgregadas = new(); odsAgregados = new(); terminosAgregados = new();
+        docentesAgregados = new(); acSeleccionado = null; aaSeleccionado = null;
+        aliadoSeleccionado = null; lineaSeleccionada = null; odsSeleccionado = null;
+        terminoSeleccionado = null; docenteSeleccionado = null;
+        desarrollaRolTemp = string.Empty; desarrollaDescripcionTemp = string.Empty;
+        mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoNombre = reg.GetValueOrDefault("nombre")?.ToString() ?? "";
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_inicio")?.ToString(), out DateTime fi)) campoFechaInicio = fi;
+        if (DateTime.TryParse(reg.GetValueOrDefault("fecha_fin")?.ToString(), out DateTime ff)) campoFechaFin = ff;
 
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
+        var todosAc = await Api.ListarAsync("ac_proyecto");
+        acAgregados = todosAc.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("area_conocimiento"))).ToList();
 
-        if (DateTime.TryParse(reg["fecha_inicio"]?.ToString(), out DateTime fi))
-            campoFechaInicio = fi;
+        var todosAa = await Api.ListarAsync("aa_proyecto");
+        aaAgregados = todosAa.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("area_aplicacion"))).ToList();
 
-        if (DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime ff))
-            campoFechaFin = ff;
+        var todosAliados = await Api.ListarAsync("aliado_proyecto");
+        aliadosAgregados = todosAliados.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("aliado"))).ToList();
 
-        mostrarFormulario = true;
-        mensaje = string.Empty;
+        var todasLineas = await Api.ListarAsync("proyecto_linea");
+        lineasAgregadas = todasLineas.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("linea_investigacion"))).ToList();
+
+        var todosOds = await Api.ListarAsync("ods_proyecto");
+        odsAgregados = todosOds.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("ods"))).ToList();
+
+        var todasPalabras = await Api.ListarAsync("palabras_clave");
+        terminosAgregados = todasPalabras.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => x.GetValueOrDefault("termino_clave")?.ToString() ?? "").ToList();
+
+        var todosDesarrolla = await Api.ListarAsync("desarrolla");
+        docentesAgregados = todosDesarrolla.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == campoId)
+            .Select(x => new DesarrollaTemp
+            {
+                docente = Convert.ToInt32(x.GetValueOrDefault("docente")),
+                rol = x.GetValueOrDefault("rol")?.ToString(),
+                descripcion = x.GetValueOrDefault("descripcion")?.ToString()
+            }).ToList();
+
+        mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    // Agregar / Quitar
+    private void AgregarAc() { if (acSeleccionado == null || acAgregados.Contains(acSeleccionado.Value)) return; acAgregados.Add(acSeleccionado.Value); acSeleccionado = null; }
+    private void QuitarAc(int id) => acAgregados.Remove(id);
+
+    private void AgregarAa() { if (aaSeleccionado == null || aaAgregados.Contains(aaSeleccionado.Value)) return; aaAgregados.Add(aaSeleccionado.Value); aaSeleccionado = null; }
+    private void QuitarAa(int id) => aaAgregados.Remove(id);
+
+    private void AgregarAliado() { if (aliadoSeleccionado == null || aliadosAgregados.Contains(aliadoSeleccionado.Value)) return; aliadosAgregados.Add(aliadoSeleccionado.Value); aliadoSeleccionado = null; }
+    private void QuitarAliado(int id) => aliadosAgregados.Remove(id);
+
+    private void AgregarLinea() { if (lineaSeleccionada == null || lineasAgregadas.Contains(lineaSeleccionada.Value)) return; lineasAgregadas.Add(lineaSeleccionada.Value); lineaSeleccionada = null; }
+    private void QuitarLinea(int id) => lineasAgregadas.Remove(id);
+
+    private void AgregarOds() { if (odsSeleccionado == null || odsAgregados.Contains(odsSeleccionado.Value)) return; odsAgregados.Add(odsSeleccionado.Value); odsSeleccionado = null; }
+    private void QuitarOds(int id) => odsAgregados.Remove(id);
+
+    private void AgregarTermino() { if (string.IsNullOrEmpty(terminoSeleccionado) || terminosAgregados.Contains(terminoSeleccionado)) return; terminosAgregados.Add(terminoSeleccionado); terminoSeleccionado = null; }
+    private void QuitarTermino(string t) => terminosAgregados.Remove(t);
+
+    private void AgregarDocente()
+    {
+        if (docenteSeleccionado == null || docentesAgregados.Any(d => d.docente == docenteSeleccionado.Value)) return;
+        docentesAgregados.Add(new DesarrollaTemp { docente = docenteSeleccionado.Value, rol = desarrollaRolTemp, descripcion = desarrollaDescripcionTemp });
+        docenteSeleccionado = null; desarrollaRolTemp = string.Empty; desarrollaDescripcionTemp = string.Empty;
+    }
+    private void QuitarDocente(DesarrollaTemp d) => docentesAgregados.Remove(d);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
             ["nombre"] = campoNombre,
-            ["fecha_inicio"] = campoFechaInicio,
-            ["fecha_fin"] = campoFechaFin
+            ["fecha_inicio"] = campoFechaInicio?.ToString("yyyy-MM-dd"),
+            ["fecha_fin"] = campoFechaFin?.ToString("yyyy-MM-dd")
         };
 
-        var resultado = editando
-            ? await Api.ActualizarAsync("proyecto", "id", campoId, datos)
-            : await Api.CrearAsync("proyecto", datos);
+        (bool exito, string mensaje) resultado;
+        if (editando)
+            resultado = await Api.ActualizarAsync("proyecto", "id", campoId, datos);
+        else
+            resultado = await Api.CrearAsync("proyecto", datos);
 
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
+        if (!resultado.exito) { exito = false; mensaje = resultado.mensaje; return; }
 
-        if (exito)
+        string proyectoId = campoId;
+        if (!editando)
         {
-            mostrarFormulario = false;
-            await CargarRegistros();
+            var todos = await Api.ListarAsync("proyecto");
+            proyectoId = todos.LastOrDefault()?.GetValueOrDefault("id")?.ToString() ?? "";
         }
+
+        // Sincronizar ac_proyecto
+        if (editando) { var ex = await Api.ListarAsync("ac_proyecto"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("ac_proyecto", proyectoId, x.GetValueOrDefault("area_conocimiento")?.ToString() ?? ""); }
+        foreach (var id in acAgregados) await Api.CrearAsync("ac_proyecto", new Dictionary<string, object?> { ["proyecto"] = int.Parse(proyectoId), ["area_conocimiento"] = id });
+
+        // Sincronizar aa_proyecto
+        if (editando) { var ex = await Api.ListarAsync("aa_proyecto"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("aa_proyecto", proyectoId, x.GetValueOrDefault("area_aplicacion")?.ToString() ?? ""); }
+        foreach (var id in aaAgregados) await Api.CrearAsync("aa_proyecto", new Dictionary<string, object?> { ["proyecto"] = int.Parse(proyectoId), ["area_aplicacion"] = id });
+
+        // Sincronizar aliado_proyecto
+        if (editando) { var ex = await Api.ListarAsync("aliado_proyecto"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("aliado_proyecto", x.GetValueOrDefault("aliado")?.ToString() ?? "", proyectoId); }
+        foreach (var id in aliadosAgregados) await Api.CrearAsync("aliado_proyecto", new Dictionary<string, object?> { ["aliado"] = id, ["proyecto"] = int.Parse(proyectoId) });
+
+        // Sincronizar proyecto_linea
+        if (editando) { var ex = await Api.ListarAsync("proyecto_linea"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("proyecto_linea", proyectoId, x.GetValueOrDefault("linea_investigacion")?.ToString() ?? ""); }
+        foreach (var id in lineasAgregadas) await Api.CrearAsync("proyecto_linea", new Dictionary<string, object?> { ["proyecto"] = int.Parse(proyectoId), ["linea_investigacion"] = id });
+
+        // Sincronizar ods_proyecto
+        if (editando) { var ex = await Api.ListarAsync("ods_proyecto"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("ods_proyecto", proyectoId, x.GetValueOrDefault("ods")?.ToString() ?? ""); }
+        foreach (var id in odsAgregados) await Api.CrearAsync("ods_proyecto", new Dictionary<string, object?> { ["proyecto"] = int.Parse(proyectoId), ["ods"] = id });
+
+        // Sincronizar palabras_clave
+        if (editando) { var ex = await Api.ListarAsync("palabras_clave"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("palabras_clave", proyectoId, x.GetValueOrDefault("termino_clave")?.ToString() ?? ""); }
+        foreach (var t in terminosAgregados) await Api.CrearAsync("palabras_clave", new Dictionary<string, object?> { ["proyecto"] = int.Parse(proyectoId), ["termino_clave"] = t });
+
+        // Sincronizar desarrolla
+        if (editando) { var ex = await Api.ListarAsync("desarrolla"); foreach (var x in ex.Where(x => x.GetValueOrDefault("proyecto")?.ToString() == proyectoId)) await Api.EliminarAsync("desarrolla", x.GetValueOrDefault("docente")?.ToString() ?? "", proyectoId); }
+        foreach (var d in docentesAgregados) await Api.CrearAsync("desarrolla", new Dictionary<string, object?> { ["docente"] = d.docente, ["proyecto"] = int.Parse(proyectoId), ["rol"] = d.rol, ["descripcion"] = d.descripcion });
+
+        exito = true;
+        mensaje = editando ? "Proyecto actualizado correctamente" : "Proyecto creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var resultado = await Api.EliminarAsync("proyecto", "id", reg["id"]?.ToString() ?? "");
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
-
-        if (exito)
-            await CargarRegistros();
+        var resultado = await Api.EliminarAsync("proyecto", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
     }
 
-    private void Cancelar()
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
     {
-        mostrarFormulario = false;
-        mensaje = string.Empty;
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreArea(int id)
+    {
+        var item = areasConocimiento.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["area"]} — {item["disciplina"]}";
+    }
+
+    private string ObtenerNombreAliado(int id)
+    {
+        var item = aliados.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombre"]} {item["apellidos"]}";
+    }
+
+    private string ObtenerNombreDocente(int id)
+    {
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombres"]} {item["apellidos"]}";
     }
 }

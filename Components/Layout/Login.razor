@@ -1,0 +1,99 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@rendermode InteractiveServer
+
+@inject ApiService Api
+@inject AuthenticationService AuthService
+@inject NavigationManager Nav
+
+<div class="login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f5f5f5;">
+    <div style="background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Iniciar Sesión</h2>
+
+        <div style="margin-bottom: 15px;">
+            <label class="form-label">Usuario:</label>
+            <input class="form-control" @bind="usuario" />
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label class="form-label">Contraseña:</label>
+            <input type="password" class="form-control" @bind="password" />
+        </div>
+
+        <button class="btn btn-primary w-100" @onclick="HandleLogin">
+            Ingresar
+        </button>
+
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="alert alert-danger mt-3">
+                @statusMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string usuario = "";
+    private string password = "";
+    private string statusMessage = "";
+
+    private async Task HandleLogin()
+    {
+        statusMessage = "";
+
+        if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
+        {
+            statusMessage = "Completa usuario y contraseña";
+            return;
+        }
+
+        try
+        {
+            // 🔥 IMPORTANTE: ruta correcta
+            var response = await Api.PostAsync("api/Auth/login", new
+            {
+                usuario,
+                password
+            });
+
+            if (!response.exito)
+            {
+                statusMessage = response.mensaje ?? "Error al iniciar sesión";
+                return;
+            }
+
+            // 🔥 Validar que sí venga data
+            if (response.data.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+            {
+                statusMessage = "Respuesta inválida del servidor";
+                return;
+            }
+
+            // 🔥 Obtener token
+           if (!response.data.TryGetProperty("token", out System.Text.Json.JsonElement tokenElement))
+            {
+                statusMessage = "No se recibió token";
+                return;
+            }
+
+            var token = tokenElement.GetString();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                statusMessage = "Token vacío";
+                return;
+            }
+
+            // 🔐 Guardar sesión
+            await AuthService.SetTokenAsync(token);
+
+            // 🚀 Redirigir
+            Nav.NavigateTo("/", true);
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error inesperado: {ex.Message}";
+        }
+    }
+}

@@ -1,4 +1,7 @@
-﻿@using Microsoft.AspNetCore.Components.Routing
+﻿@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthenticationService AuthService
+@inject Microsoft.AspNetCore.Components.NavigationManager Nav
+@using Microsoft.AspNetCore.Components.Routing
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -36,41 +39,46 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semilleros
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/semillero-lineas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semillero — Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/participa-semilleros">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Semillero
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/participa-grupos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Grupo
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/grupo-lineas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo — Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/ac-lineas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/as-lineas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AS — Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/ods-lineas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Línea
-            </NavLink>
-        </div>
+
+        @* Intermedias Investigación - solo admin *@
+        @if (AuthService.GetRol() == "admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/semillero-lineas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semillero — Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/participa-semilleros">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Semillero
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/participa-grupos">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Grupo
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/grupo-lineas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo — Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/ac-lineas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/as-lineas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AS — Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/ods-lineas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Línea
+                </NavLink>
+            </div>
+        }
 
         @* ── CARACTERIZACIÓN ── *@
         <div class="nav-item px-3 mt-2">
@@ -97,8 +105,13 @@
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">PROYECTO</span>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/ac-proyectos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Proyecto
+            <NavLink class="nav-link" href="/Proyectos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/Productos">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Productos
             </NavLink>
         </div>
         <div class="nav-item px-3">
@@ -106,42 +119,47 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Desarrolla
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/aliado-proyectos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Aliado — Proyecto
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/aa-proyectos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — Proyecto
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/terminos-clave">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Términos Clave
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/palabras-clave">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Palabras Clave
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/proyectos-linea">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto — Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/ods-proyectos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Proyecto
-            </NavLink>
-        </div>
-         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Proyectos">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto
-            </NavLink>
-        </div>
-     
+
+        @* Intermedias Proyecto - solo admin *@
+        @if (AuthService.GetRol() == "admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/ac-proyectos">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Proyecto
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/aliado-proyectos">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Aliado — Proyecto
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/aa-proyectos">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — Proyecto
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/terminos-clave">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Términos Clave
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/palabras-clave">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Palabras Clave
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/proyectos-linea">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto — Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/ods-proyectos">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS — Proyecto
+                </NavLink>
+            </div>
+        }
+
         @* ── CURRICULAR ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">CURRICULAR</span>
@@ -221,36 +239,41 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Docente — Depto
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/programas-ci">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — CI
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/an-programas">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AN — Programa
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/programas-ac">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — AC
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/programas-pe">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — PE
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/enfoques-rc">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enfoque — RC
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/aa-rcs">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — RC
-            </NavLink>
-        </div>
+
+        @* Intermedias Curricular - solo admin *@
+        @if (AuthService.GetRol() == "admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/programas-ci">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — CI
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/an-programas">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AN — Programa
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/programas-ac">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — AC
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/programas-pe">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Programa — PE
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/enfoques-rc">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Enfoque — RC
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/aa-rcs">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA — RC
+                </NavLink>
+            </div>
+        }
 
         @* ── PROFESIONAL ── *@
         <div class="nav-item px-3 mt-2">
@@ -287,11 +310,6 @@
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/red-docentes">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Red — Docente
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="/becas">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Becas
             </NavLink>
@@ -301,16 +319,40 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Apoyo Profesoral
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/estudios-ac">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Estudio — AC
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/intereses-futuros">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Intereses Futuros
-            </NavLink>
+
+        @* Intermedias Profesional - solo admin *@
+        @if (AuthService.GetRol() == "admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/red-docentes">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Red — Docente
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/estudios-ac">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Estudio — AC
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/intereses-futuros">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Intereses Futuros
+                </NavLink>
+            </div>
+        }
+
+        <div class="nav-item px-3 mt-3">
+            <button class="btn btn-outline-danger w-100" @onclick="LogoutAsync">
+                <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+            </button>
         </div>
 
     </nav>
 </div>
+
+@code {
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/", forceLoad: true);
+    }
+}

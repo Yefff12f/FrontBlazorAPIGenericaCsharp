@@ -9,74 +9,253 @@
     {
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
             @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
         </div>
     }
 
-    <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Producto</button>
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Producto</button>
+    }
 
     @if (mostrarFormulario)
     {
-        <input @bind="nombre" placeholder="Nombre" />
-        <input @bind="tipoProducto" type="number" placeholder="Tipo Producto ID" />
-        <input @bind="proyecto" type="number" placeholder="Proyecto ID" />
+        <div class="card mb-3">
+            <div class="card-header fw-bold">
+                @(editando ? "Editar Producto" : "Nuevo Producto")
+            </div>
+            <div class="card-body">
 
-        <button @onclick="GuardarRegistro">Guardar</button>
+                @* ── DATOS PRINCIPALES ── *@
+                <h6 class="text-muted mb-3">Datos del Producto</h6>
+                <div class="row">
+                    @if (editando)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Id</label>
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" @bind="campoNombre" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo Producto (ID)</label>
+                        <input class="form-control" type="number" @bind="campoTipoProducto" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Proyecto</label>
+                        <select class="form-select" @bind="campoProyecto">
+                            <option value="">-- Seleccione Proyecto --</option>
+                            @foreach (var p in proyectos)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                @* ── INTERMEDIA: DOCENTE_PRODUCTO ── *@
+                <hr />
+                <h6 class="text-muted mb-2">Docentes del Producto</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Seleccione Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarDocente">+ Agregar</button>
+                    </div>
+                </div>
+                @if (docentesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Docente</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in docentesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreDocente(id)</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarDocente(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else { <div class="alert alert-light border mb-3">No hay docentes agregados.</div> }
+
+                <hr />
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
     }
 
-    <table class="table">
-        @foreach (var r in registros)
-        {
-            <tr>
-                <td>@r["id"]</td>
-                <td>@r["nombre"]</td>
-                <td>
-                    <button @onclick="() => EditarRegistro(r)">Editar</button>
-                    <button @onclick="() => EliminarRegistro(r)">Eliminar</button>
-                </td>
-            </tr>
-        }
-    </table>
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr><th>Id</th><th>Nombre</th><th>Tipo Producto</th><th>Proyecto</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg.GetValueOrDefault("id")</td>
+                        <td>@reg.GetValueOrDefault("nombre")</td>
+                        <td>@reg.GetValueOrDefault("tipo_producto")</td>
+                        <td>@ObtenerNombre(proyectos, reg.GetValueOrDefault("proyecto"), "id", "nombre")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron registros en producto.</div>
+    }
 </div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
-    private bool mostrarFormulario=false, editando=false;
-    private string campoId="", nombre="";
-    private int? tipoProducto, proyecto;
-    private string mensaje=""; bool exito;
+    private List<Dictionary<string, object?>> proyectos = new();
+    private List<Dictionary<string, object?>> docentes = new();
+
+    private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
+    private string mensaje = string.Empty, campoId = string.Empty, campoNombre = string.Empty;
+    private int? campoTipoProducto = null, campoProyecto = null;
+
+    // Intermedias
+    private List<int> docentesAgregados = new();
+    private int? docenteSeleccionado = null;
 
     protected override async Task OnInitializedAsync()
-        => registros = await Api.ListarAsync("producto");
-
-    void NuevoRegistro(){mostrarFormulario=true;editando=false;}
-
-    void EditarRegistro(Dictionary<string, object?> r)
     {
-        editando=true;mostrarFormulario=true;
-        campoId=r["id"]?.ToString()??"";
-        nombre=r["nombre"]?.ToString()??"";
+        proyectos = await Api.ListarAsync("proyecto");
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
     }
 
-    async Task GuardarRegistro()
+    private async Task CargarRegistros()
     {
-        var datos=new Dictionary<string, object?>{
-            ["nombre"]=nombre,
-            ["tipo_producto"]=tipoProducto,
-            ["proyecto"]=proyecto
+        cargando = true;
+        registros = await Api.ListarAsync("producto");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false; campoId = string.Empty; campoNombre = string.Empty;
+        campoTipoProducto = null; campoProyecto = null;
+        docentesAgregados = new(); docenteSeleccionado = null;
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
+        campoNombre = reg.GetValueOrDefault("nombre")?.ToString() ?? "";
+        if (int.TryParse(reg.GetValueOrDefault("tipo_producto")?.ToString(), out int tp)) campoTipoProducto = tp;
+        if (int.TryParse(reg.GetValueOrDefault("proyecto")?.ToString(), out int p)) campoProyecto = p;
+
+        var todosDocentes = await Api.ListarAsync("docente_producto");
+        docentesAgregados = todosDocentes
+            .Where(x => x.GetValueOrDefault("producto")?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x.GetValueOrDefault("docente")))
+            .ToList();
+
+        mostrarFormulario = true; mensaje = string.Empty;
+    }
+
+    private void AgregarDocente()
+    {
+        if (docenteSeleccionado == null || docentesAgregados.Contains(docenteSeleccionado.Value)) return;
+        docentesAgregados.Add(docenteSeleccionado.Value);
+        docenteSeleccionado = null;
+    }
+    private void QuitarDocente(int id) => docentesAgregados.Remove(id);
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["nombre"] = campoNombre,
+            ["tipo_producto"] = campoTipoProducto,
+            ["proyecto"] = campoProyecto
         };
 
-        var res=editando
-        ? await Api.ActualizarAsync("producto","id",campoId,datos)
-        : await Api.CrearAsync("producto",datos);
+        (bool exito, string mensaje) resultado;
+        if (editando)
+            resultado = await Api.ActualizarAsync("producto", "id", campoId, datos);
+        else
+            resultado = await Api.CrearAsync("producto", datos);
 
-        mensaje=res.mensaje;exito=res.exito;
-        if(exito){mostrarFormulario=false;registros=await Api.ListarAsync("producto");}
+        if (!resultado.exito) { exito = false; mensaje = resultado.mensaje; return; }
+
+        string productoId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("producto");
+            productoId = todos.LastOrDefault()?.GetValueOrDefault("id")?.ToString() ?? "";
+        }
+
+        // Sincronizar docente_producto
+        if (editando)
+        {
+            var ex = await Api.ListarAsync("docente_producto");
+            foreach (var x in ex.Where(x => x.GetValueOrDefault("producto")?.ToString() == productoId))
+                await Api.EliminarAsync("docente_producto",
+                    x.GetValueOrDefault("docente")?.ToString() ?? "", productoId);
+        }
+        foreach (var dId in docentesAgregados)
+            await Api.CrearAsync("docente_producto", new Dictionary<string, object?>
+            { ["docente"] = dId, ["producto"] = int.Parse(productoId) });
+
+        exito = true;
+        mensaje = editando ? "Producto actualizado correctamente" : "Producto creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
-    async Task EliminarRegistro(Dictionary<string, object?> r)
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
     {
-        var res=await Api.EliminarAsync("producto","id",r["id"]?.ToString()??"");
-        mensaje=res.mensaje;exito=res.exito;
-        if(exito) registros=await Api.ListarAsync("producto");
+        var resultado = await Api.EliminarAsync("producto", "id", reg.GetValueOrDefault("id")?.ToString() ?? "");
+        exito = resultado.exito; mensaje = resultado.mensaje;
+        if (exito) await CargarRegistros();
+    }
+
+    private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreDocente(int id)
+    {
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombres"]} {item["apellidos"]}";
     }
 }
