@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Registro" : "Nuevo Registro")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Registro" : "Nuevo Registro")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -82,6 +82,90 @@
                         </select>
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Enfoques</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="enfoqueSeleccionado">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var e in enfoques)
+                            {
+                                <option value="@e["id"]">@e["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarEnfoque">+ Agregar</button>
+                    </div>
+                </div>
+                @if (enfoquesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Enfoque</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in enfoquesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(enfoques, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarEnfoque(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay enfoques agregados.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Actividades Académicas</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <select class="form-select" @bind="actvSeleccionada">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in actvsAcademicas)
+                            {
+                                <option value="@a["id"]">@ObtenerNombreActv(a)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Componente" @bind="aaRcComponenteTemp" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Semestre" @bind="aaRcSemestreTemp" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <button class="btn btn-outline-primary" @onclick="AgregarAaRc">+ Agregar Actividad</button>
+                    </div>
+                </div>
+                @if (actividadesAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Actividad</th><th>Componente</th><th>Semestre</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in actividadesAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreActv(item.actv_academicas_idcurso)</td>
+                                    <td>@item.componente</td>
+                                    <td>@item.semestre</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAaRc(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay actividades académicas agregadas.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -128,8 +212,18 @@
 </div>
 
 @code {
+    private class AaRcTemp
+    {
+        public int actv_academicas_idcurso { get; set; }
+        public string? componente { get; set; }
+        public string? semestre { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
     private List<Dictionary<string, object?>> programas = new();
+    private List<Dictionary<string, object?>> enfoques = new();
+    private List<Dictionary<string, object?>> actvsAcademicas = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoCantPreg = string.Empty, campoCalifPreg = string.Empty, campoHActv = string.Empty;
@@ -138,9 +232,16 @@
     private int? campoPrograma = null;
     private DateTime? campoFechaIni = null, campoFechaFin = null;
 
+    private List<int> enfoquesAgregados = new();
+    private List<AaRcTemp> actividadesAgregadas = new();
+    private int? enfoqueSeleccionado = null, actvSeleccionada = null;
+    private string aaRcComponenteTemp = string.Empty, aaRcSemestreTemp = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         programas = await Api.ListarAsync("programa");
+        enfoques = await Api.ListarAsync("enfoque");
+        actvsAcademicas = await Api.ListarAsync("actv_academica");
         await CargarRegistros();
     }
 
@@ -156,12 +257,13 @@
         editando = false; campoId = string.Empty; campoCantPreg = string.Empty;
         campoCalifPreg = string.Empty; campoHActv = string.Empty; campoDuracion = string.Empty;
         campoDocenteSemestres = string.Empty; campoMetodologia = string.Empty;
-        campoTipoTitulacion = string.Empty; campoPrograma = null;
-        campoFechaIni = null; campoFechaFin = null;
+        campoTipoTitulacion = string.Empty; campoPrograma = null; campoFechaIni = null; campoFechaFin = null;
+        enfoquesAgregados = new(); actividadesAgregadas = new();
+        enfoqueSeleccionado = null; actvSeleccionada = null; aaRcComponenteTemp = string.Empty; aaRcSemestreTemp = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
@@ -175,25 +277,111 @@
         if (int.TryParse(reg["programa"]?.ToString(), out int p)) campoPrograma = p;
         if (DateTime.TryParse(reg["fecha_ini"]?.ToString(), out DateTime fi)) campoFechaIni = fi;
         if (DateTime.TryParse(reg["fecha_fin"]?.ToString(), out DateTime ff)) campoFechaFin = ff;
+
+        var todosEnfoques = await Api.ListarAsync("enfoque_rc");
+        enfoquesAgregados = todosEnfoques
+            .Where(x => x["registro_calificado"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["enfoque"]))
+            .ToList();
+
+        var todasAaRc = await Api.ListarAsync("aa_rc");
+        actividadesAgregadas = todasAaRc
+            .Where(x => x["registro_calificado_codigo"]?.ToString() == campoId)
+            .Select(x => new AaRcTemp
+            {
+                actv_academicas_idcurso = Convert.ToInt32(x["actv_academicas_idcurso"]),
+                componente = x["componente"]?.ToString(),
+                semestre = x["semestre"]?.ToString()
+            }).ToList();
+
+        enfoqueSeleccionado = null; actvSeleccionada = null; aaRcComponenteTemp = string.Empty; aaRcSemestreTemp = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarEnfoque()
+    {
+        if (enfoqueSeleccionado == null || enfoquesAgregados.Contains(enfoqueSeleccionado.Value)) return;
+        enfoquesAgregados.Add(enfoqueSeleccionado.Value);
+        enfoqueSeleccionado = null;
+    }
+
+    private void QuitarEnfoque(int id) => enfoquesAgregados.Remove(id);
+
+    private void AgregarAaRc()
+    {
+        if (actvSeleccionada == null || actividadesAgregadas.Any(x => x.actv_academicas_idcurso == actvSeleccionada.Value)) return;
+        actividadesAgregadas.Add(new AaRcTemp
+        {
+            actv_academicas_idcurso = actvSeleccionada.Value,
+            componente = aaRcComponenteTemp,
+            semestre = aaRcSemestreTemp
+        });
+        actvSeleccionada = null;
+        aaRcComponenteTemp = string.Empty;
+        aaRcSemestreTemp = string.Empty;
+    }
+
+    private void QuitarAaRc(AaRcTemp item) => actividadesAgregadas.Remove(item);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["cant_preg"] = campoCantPreg, ["calif_preg"] = campoCalifPreg,
-            ["h_actv_academica"] = campoHActv, ["programa"] = campoPrograma,
+            ["cant_preg"] = campoCantPreg,
+            ["calif_preg"] = campoCalifPreg,
+            ["h_actv_academica"] = campoHActv,
+            ["programa"] = campoPrograma,
             ["fecha_ini"] = campoFechaIni?.ToString("yyyy-MM-dd"),
             ["fecha_fin"] = campoFechaFin?.ToString("yyyy-MM-dd"),
-            ["duracion_anios"] = campoDuracion, ["docente_semestres"] = campoDocenteSemestres,
-            ["metodologia"] = campoMetodologia, ["tipo_titulacion"] = campoTipoTitulacion
+            ["duracion_anios"] = campoDuracion,
+            ["docente_semestres"] = campoDocenteSemestres,
+            ["metodologia"] = campoMetodologia,
+            ["tipo_titulacion"] = campoTipoTitulacion
         };
-        var resultado = editando
+
+        (bool exito, string mensaje) resultado = editando
             ? await Api.ActualizarAsync("registro_calificado", "id", campoId, datos)
             : await Api.CrearAsync("registro_calificado", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string rcId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("registro_calificado");
+            rcId = todos.LastOrDefault()?["id"]?.ToString() ?? "";
+        }
+
+        if (editando)
+        {
+            var existentesEnfoques = await Api.ListarAsync("enfoque_rc");
+            foreach (var item in existentesEnfoques.Where(x => x["registro_calificado"]?.ToString() == rcId))
+                await Api.EliminarAsync("enfoque_rc", item["enfoque"]?.ToString() ?? "", rcId);
+
+            var existentesAaRc = await Api.ListarAsync("aa_rc");
+            foreach (var item in existentesAaRc.Where(x => x["registro_calificado_codigo"]?.ToString() == rcId))
+                await Api.EliminarAsync("aa_rc", item["actv_academicas_idcurso"]?.ToString() ?? "", rcId);
+        }
+
+        foreach (var id in enfoquesAgregados)
+            await Api.CrearAsync("enfoque_rc", new Dictionary<string, object?> { ["enfoque"] = id, ["registro_calificado"] = int.Parse(rcId) });
+
+        foreach (var item in actividadesAgregadas)
+            await Api.CrearAsync("aa_rc", new Dictionary<string, object?>
+            {
+                ["actv_academicas_idcurso"] = item.actv_academicas_idcurso,
+                ["registro_calificado_codigo"] = int.Parse(rcId),
+                ["componente"] = item.componente,
+                ["semestre"] = item.semestre
+            });
+
+        exito = true;
+        mensaje = editando ? "Registro actualizado correctamente" : "Registro creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -210,5 +398,17 @@
         if (id == null) return "";
         var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
         return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreActv(Dictionary<string, object?>? item)
+    {
+        if (item == null) return "";
+        return $"{item["tipo"]} - {item["area_formacion"]}";
+    }
+
+    private string ObtenerNombreActv(int id)
+    {
+        var item = actvsAcademicas.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        return ObtenerNombreActv(item);
     }
 }

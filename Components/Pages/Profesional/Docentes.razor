@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Docente" : "Nuevo Docente")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Docente" : "Nuevo Docente")</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-4 mb-3">
@@ -77,14 +77,198 @@
                         <input class="form-control" @bind="campoNacionalidad" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Línea Inv. Principal (ID)</label>
-                        <input class="form-control" type="number" @bind="campoLineaInv" />
+                        <label class="form-label">Línea Inv. Principal</label>
+                        <select class="form-select" @bind="campoLineaInv">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var l in lineasInvestigacion)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-8 mb-3">
                         <label class="form-label">Perfil</label>
                         <textarea class="form-control" rows="3" @bind="campoPerfil"></textarea>
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Intereses Futuros</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="terminoSeleccionado">
+                            <option value="">-- Seleccione término --</option>
+                            @foreach (var t in terminosClave)
+                            {
+                                <option value="@t["termino"]">@t["termino"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarTermino">+ Agregar</button>
+                    </div>
+                </div>
+                @if (terminosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Término</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var termino in terminosAgregados)
+                            {
+                                <tr>
+                                    <td>@termino</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarTermino(termino)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay intereses futuros agregados.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Reconocimientos</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Tipo" @bind="reconTipoTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@reconFechaTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => reconFechaTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Institución" @bind="reconInstitucionTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Nombre" @bind="reconNombreTemp" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <input class="form-control" placeholder="Ámbito" @bind="reconAmbitoTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarReconocimiento">+ Agregar</button>
+                    </div>
+                </div>
+                @if (reconocimientosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Tipo</th><th>Fecha</th><th>Institución</th><th>Nombre</th><th>Ámbito</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in reconocimientosAgregados)
+                            {
+                                <tr>
+                                    <td>@item.tipo</td>
+                                    <td>@item.fecha?.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.institucion</td>
+                                    <td>@item.nombre</td>
+                                    <td>@item.ambito</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarReconocimiento(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay reconocimientos agregados.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Experiencia</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Nombre cargo" @bind="expNombreCargoTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Institución" @bind="expInstitucionTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Nombre" @bind="expNombreTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Tipo" @bind="expTipoTemp" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <input class="form-control" type="date"
+                            value="@expFechaInicioTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => expFechaInicioTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" type="date"
+                            value="@expFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => expFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarExperiencia">+ Agregar</button>
+                    </div>
+                </div>
+                @if (experienciasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Cargo</th><th>Institución</th><th>Nombre</th><th>Tipo</th><th>Inicio</th><th>Fin</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in experienciasAgregadas)
+                            {
+                                <tr>
+                                    <td>@item.nombre_cargo</td>
+                                    <td>@item.institucion</td>
+                                    <td>@item.nombre</td>
+                                    <td>@item.tipo</td>
+                                    <td>@item.fecha_inicio?.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarExperiencia(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay experiencias agregadas.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Evaluaciones Docente</h6>
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <input class="form-control" type="number" step="0.01" placeholder="Calificación" @bind="evalCalificacionTemp" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Semestre" @bind="evalSemestreTemp" />
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarEvaluacion">+ Agregar</button>
+                    </div>
+                </div>
+                @if (evaluacionesAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Calificación</th><th>Semestre</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in evaluacionesAgregadas)
+                            {
+                                <tr>
+                                    <td>@item.calificacion</td>
+                                    <td>@item.semestre</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarEvaluacion(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay evaluaciones agregadas.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -135,9 +319,35 @@
 </div>
 
 @code {
+    private class ReconocimientoTemp
+    {
+        public string? tipo { get; set; }
+        public DateTime? fecha { get; set; }
+        public string? institucion { get; set; }
+        public string? nombre { get; set; }
+        public string? ambito { get; set; }
+    }
+
+    private class ExperienciaTemp
+    {
+        public string? nombre_cargo { get; set; }
+        public string? institucion { get; set; }
+        public string? nombre { get; set; }
+        public string? tipo { get; set; }
+        public DateTime? fecha_inicio { get; set; }
+        public DateTime? fecha_fin { get; set; }
+    }
+
+    private class EvaluacionTemp
+    {
+        public float? calificacion { get; set; }
+        public string? semestre { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
-     private List<Dictionary<string, object?>> LineaInvestigacion= new();
-         
+    private List<Dictionary<string, object?>> lineasInvestigacion = new();
+    private List<Dictionary<string, object?>> terminosClave = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty;
     private int? campoCedula = null, campoLineaInv = null;
@@ -149,9 +359,23 @@
     private string campoNacionalidad = string.Empty, campoPerfil = string.Empty;
     private DateTime? campoFechaNacimiento = null;
 
+    private List<string> terminosAgregados = new();
+    private List<ReconocimientoTemp> reconocimientosAgregados = new();
+    private List<ExperienciaTemp> experienciasAgregadas = new();
+    private List<EvaluacionTemp> evaluacionesAgregadas = new();
+
+    private string? terminoSeleccionado = null;
+    private string reconTipoTemp = string.Empty, reconInstitucionTemp = string.Empty, reconNombreTemp = string.Empty, reconAmbitoTemp = string.Empty;
+    private DateTime? reconFechaTemp = null;
+    private string expNombreCargoTemp = string.Empty, expInstitucionTemp = string.Empty, expNombreTemp = string.Empty, expTipoTemp = string.Empty;
+    private DateTime? expFechaInicioTemp = null, expFechaFinTemp = null;
+    private float? evalCalificacionTemp = null;
+    private string evalSemestreTemp = string.Empty;
+
     protected override async Task OnInitializedAsync()
-    {    
-        LineaInvestigacion = await Api.ListarAsync("LineaInvestigacion"); 
+    {
+        lineasInvestigacion = await Api.ListarAsync("linea_investigacion");
+        terminosClave = await Api.ListarAsync("termino_clave");
         await CargarRegistros();
     }
 
@@ -170,10 +394,12 @@
         campoUrlCvlac = string.Empty; campoEscalafon = string.Empty; campoPerfil = string.Empty;
         campoCatMinciencia = string.Empty; campoConvMinciencia = string.Empty;
         campoNacionalidad = string.Empty; campoLineaInv = null;
+        terminosAgregados = new(); reconocimientosAgregados = new(); experienciasAgregadas = new(); evaluacionesAgregadas = new();
+        terminoSeleccionado = null; LimpiarTempReconocimiento(); LimpiarTempExperiencia(); LimpiarTempEvaluacion();
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         if (int.TryParse(reg["cedula"]?.ToString(), out int c)) campoCedula = c;
@@ -191,27 +417,199 @@
         campoConvMinciencia = reg["conv_minciencia"]?.ToString() ?? "";
         campoNacionalidad = reg["nacionalidad"]?.ToString() ?? "";
         if (int.TryParse(reg["linea_investigacion_principal"]?.ToString(), out int li)) campoLineaInv = li;
+
+        string docenteId = campoCedula?.ToString() ?? "";
+
+        var todosIntereses = await Api.ListarAsync("intereses_futuros");
+        terminosAgregados = todosIntereses
+            .Where(x => x["docente"]?.ToString() == docenteId)
+            .Select(x => x["termino_clave"]?.ToString() ?? string.Empty)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()
+            .ToList();
+
+        var todosReconocimientos = await Api.ListarAsync("reconocimiento");
+        reconocimientosAgregados = todosReconocimientos
+            .Where(x => x["docente"]?.ToString() == docenteId)
+            .Select(x => new ReconocimientoTemp
+            {
+                tipo = x["tipo"]?.ToString(),
+                fecha = DateTime.TryParse(x["fecha"]?.ToString(), out var f) ? f : null,
+                institucion = x["institucion"]?.ToString(),
+                nombre = x["nombre"]?.ToString(),
+                ambito = x["ambito"]?.ToString()
+            }).ToList();
+
+        var todasExperiencias = await Api.ListarAsync("experiecia");
+        experienciasAgregadas = todasExperiencias
+            .Where(x => x["docente"]?.ToString() == docenteId)
+            .Select(x => new ExperienciaTemp
+            {
+                nombre_cargo = x["nombre_cargo"]?.ToString(),
+                institucion = x["institucion"]?.ToString(),
+                nombre = x["nombre"]?.ToString(),
+                tipo = x["tipo"]?.ToString(),
+                fecha_inicio = DateTime.TryParse(x["fecha_inicio"]?.ToString(), out var fi) ? fi : null,
+                fecha_fin = DateTime.TryParse(x["fecha_fin"]?.ToString(), out var ff) ? ff : null
+            }).ToList();
+
+        var todasEvaluaciones = await Api.ListarAsync("evaluacion_docente");
+        evaluacionesAgregadas = todasEvaluaciones
+            .Where(x => x["docente"]?.ToString() == docenteId)
+            .Select(x => new EvaluacionTemp
+            {
+                calificacion = float.TryParse(x["calificacion"]?.ToString(), out var cal) ? cal : null,
+                semestre = x["semestre"]?.ToString()
+            }).ToList();
+
+        terminoSeleccionado = null; LimpiarTempReconocimiento(); LimpiarTempExperiencia(); LimpiarTempEvaluacion();
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarTermino()
+    {
+        if (string.IsNullOrWhiteSpace(terminoSeleccionado) || terminosAgregados.Contains(terminoSeleccionado)) return;
+        terminosAgregados.Add(terminoSeleccionado);
+        terminoSeleccionado = null;
+    }
+
+    private void QuitarTermino(string termino) => terminosAgregados.Remove(termino);
+
+    private void AgregarReconocimiento()
+    {
+        if (string.IsNullOrWhiteSpace(reconTipoTemp) && string.IsNullOrWhiteSpace(reconNombreTemp)) return;
+        reconocimientosAgregados.Add(new ReconocimientoTemp
+        {
+            tipo = reconTipoTemp,
+            fecha = reconFechaTemp,
+            institucion = reconInstitucionTemp,
+            nombre = reconNombreTemp,
+            ambito = reconAmbitoTemp
+        });
+        LimpiarTempReconocimiento();
+    }
+
+    private void QuitarReconocimiento(ReconocimientoTemp item) => reconocimientosAgregados.Remove(item);
+
+    private void AgregarExperiencia()
+    {
+        if (string.IsNullOrWhiteSpace(expNombreCargoTemp) && string.IsNullOrWhiteSpace(expInstitucionTemp)) return;
+        experienciasAgregadas.Add(new ExperienciaTemp
+        {
+            nombre_cargo = expNombreCargoTemp,
+            institucion = expInstitucionTemp,
+            nombre = expNombreTemp,
+            tipo = expTipoTemp,
+            fecha_inicio = expFechaInicioTemp,
+            fecha_fin = expFechaFinTemp
+        });
+        LimpiarTempExperiencia();
+    }
+
+    private void QuitarExperiencia(ExperienciaTemp item) => experienciasAgregadas.Remove(item);
+
+    private void AgregarEvaluacion()
+    {
+        if (evalCalificacionTemp == null && string.IsNullOrWhiteSpace(evalSemestreTemp)) return;
+        evaluacionesAgregadas.Add(new EvaluacionTemp
+        {
+            calificacion = evalCalificacionTemp,
+            semestre = evalSemestreTemp
+        });
+        LimpiarTempEvaluacion();
+    }
+
+    private void QuitarEvaluacion(EvaluacionTemp item) => evaluacionesAgregadas.Remove(item);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["cedula"] = campoCedula, ["nombres"] = campoNombres,
-            ["apellidos"] = campoApellidos, ["genero"] = campoGenero,
-            ["cargo"] = campoCargo, ["fecha_nacimiento"] = campoFechaNacimiento,
-            ["correo"] = campoCorreo, ["telefono"] = campoTelefono,
-            ["url_cvlac"] = campoUrlCvlac, ["escalafon"] = campoEscalafon,
-            ["perfil"] = campoPerfil, ["cat_minciencia"] = campoCatMinciencia,
-            ["conv_minciencia"] = campoConvMinciencia, ["nacionalidad"] = campoNacionalidad,
+            ["cedula"] = campoCedula,
+            ["nombres"] = campoNombres,
+            ["apellidos"] = campoApellidos,
+            ["genero"] = campoGenero,
+            ["cargo"] = campoCargo,
+            ["fecha_nacimiento"] = campoFechaNacimiento?.ToString("yyyy-MM-dd"),
+            ["correo"] = campoCorreo,
+            ["telefono"] = campoTelefono,
+            ["url_cvlac"] = campoUrlCvlac,
+            ["escalafon"] = campoEscalafon,
+            ["perfil"] = campoPerfil,
+            ["cat_minciencia"] = campoCatMinciencia,
+            ["conv_minciencia"] = campoConvMinciencia,
+            ["nacionalidad"] = campoNacionalidad,
             ["linea_investigacion_principal"] = campoLineaInv
         };
+
         var resultado = editando
             ? await Api.ActualizarAsync("docente", "cedula", campoCedula.ToString()!, datos)
             : await Api.CrearAsync("docente", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string docenteId = campoCedula?.ToString() ?? "";
+
+        if (editando)
+        {
+            var todosIntereses = await Api.ListarAsync("intereses_futuros");
+            foreach (var item in todosIntereses.Where(x => x["docente"]?.ToString() == docenteId))
+                await Api.EliminarAsync("intereses_futuros", docenteId, item["termino_clave"]?.ToString() ?? "");
+
+            var todosReconocimientos = await Api.ListarAsync("reconocimiento");
+            foreach (var item in todosReconocimientos.Where(x => x["docente"]?.ToString() == docenteId))
+                await Api.EliminarAsync("reconocimiento", "id", item["id"]?.ToString() ?? "");
+
+            var todasExperiencias = await Api.ListarAsync("experiecia");
+            foreach (var item in todasExperiencias.Where(x => x["docente"]?.ToString() == docenteId))
+                await Api.EliminarAsync("experiecia", "id", item["id"]?.ToString() ?? "");
+
+            var todasEvaluaciones = await Api.ListarAsync("evaluacion_docente");
+            foreach (var item in todasEvaluaciones.Where(x => x["docente"]?.ToString() == docenteId))
+                await Api.EliminarAsync("evaluacion_docente", "id", item["id"]?.ToString() ?? "");
+        }
+
+        foreach (var termino in terminosAgregados)
+            await Api.CrearAsync("intereses_futuros", new Dictionary<string, object?> { ["docente"] = campoCedula, ["termino_clave"] = termino });
+
+        foreach (var item in reconocimientosAgregados)
+            await Api.CrearAsync("reconocimiento", new Dictionary<string, object?>
+            {
+                ["tipo"] = item.tipo,
+                ["fecha"] = item.fecha?.ToString("yyyy-MM-dd"),
+                ["institucion"] = item.institucion,
+                ["nombre"] = item.nombre,
+                ["ambito"] = item.ambito,
+                ["docente"] = campoCedula
+            });
+
+        foreach (var item in experienciasAgregadas)
+            await Api.CrearAsync("experiecia", new Dictionary<string, object?>
+            {
+                ["nombre_cargo"] = item.nombre_cargo,
+                ["institucion"] = item.institucion,
+                ["nombre"] = item.nombre,
+                ["tipo"] = item.tipo,
+                ["fecha_inicio"] = item.fecha_inicio?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = item.fecha_fin?.ToString("yyyy-MM-dd"),
+                ["docente"] = campoCedula
+            });
+
+        foreach (var item in evaluacionesAgregadas)
+            await Api.CrearAsync("evaluacion_docente", new Dictionary<string, object?>
+            {
+                ["calificacion"] = item.calificacion,
+                ["semestre"] = item.semestre,
+                ["docente"] = campoCedula
+            });
+
+        exito = true;
+        mensaje = editando ? "Docente actualizado correctamente" : "Docente creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -222,4 +620,29 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private void LimpiarTempReconocimiento()
+    {
+        reconTipoTemp = string.Empty;
+        reconInstitucionTemp = string.Empty;
+        reconNombreTemp = string.Empty;
+        reconAmbitoTemp = string.Empty;
+        reconFechaTemp = null;
+    }
+
+    private void LimpiarTempExperiencia()
+    {
+        expNombreCargoTemp = string.Empty;
+        expInstitucionTemp = string.Empty;
+        expNombreTemp = string.Empty;
+        expTipoTemp = string.Empty;
+        expFechaInicioTemp = null;
+        expFechaFinTemp = null;
+    }
+
+    private void LimpiarTempEvaluacion()
+    {
+        evalCalificacionTemp = null;
+        evalSemestreTemp = string.Empty;
+    }
 }

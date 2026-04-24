@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Red" : "Nueva Red")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Red" : "Nueva Red")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -44,6 +44,62 @@
                         <input class="form-control" @bind="campoPas" />
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Docentes en la Red</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@redFechaInicioTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => redFechaInicioTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@redFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => redFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarDocente">+ Agregar</button>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <textarea class="form-control" rows="3" placeholder="Actividades destacadas" @bind="redActDestacadasTemp"></textarea>
+                    </div>
+                </div>
+                @if (docentesAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Docente</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Actividades</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in docentesAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreDocente(item.docente)</td>
+                                    <td>@item.fecha_inicio?.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.act_destacadas</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarDocente(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay docentes agregados a esta red.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -88,12 +144,31 @@
 </div>
 
 @code {
+    private class RedDocenteTemp
+    {
+        public int docente { get; set; }
+        public DateTime? fecha_inicio { get; set; }
+        public DateTime? fecha_fin { get; set; }
+        public string? act_destacadas { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> docentes = new();
+    private List<RedDocenteTemp> docentesAgregados = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoNombre = string.Empty, campoUri = string.Empty, campoPas = string.Empty;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    private int? docenteSeleccionado = null;
+    private DateTime? redFechaInicioTemp = null, redFechaFinTemp = null;
+    private string redActDestacadasTemp = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        docentes = await Api.ListarAsync("docente");
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -104,32 +179,98 @@
 
     private void NuevoRegistro()
     {
-        editando = false; campoId = string.Empty;
-        campoNombre = string.Empty; campoUri = string.Empty; campoPas = string.Empty;
+        editando = false; campoId = string.Empty; campoNombre = string.Empty; campoUri = string.Empty; campoPas = string.Empty;
+        docentesAgregados = new(); docenteSeleccionado = null; redFechaInicioTemp = null; redFechaFinTemp = null; redActDestacadasTemp = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         campoId = reg["idr"]?.ToString() ?? "";
         campoNombre = reg["nombre"]?.ToString() ?? "";
         campoUri = reg["uri"]?.ToString() ?? "";
         campoPas = reg["pas"]?.ToString() ?? "";
+
+        var todos = await Api.ListarAsync("red_docente");
+        docentesAgregados = todos
+            .Where(x => x["red"]?.ToString() == campoId)
+            .Select(x => new RedDocenteTemp
+            {
+                docente = Convert.ToInt32(x["docente"]),
+                fecha_inicio = DateTime.TryParse(x["fecha_inicio"]?.ToString(), out var fi) ? fi : null,
+                fecha_fin = DateTime.TryParse(x["fecha_fin"]?.ToString(), out var ff) ? ff : null,
+                act_destacadas = x["act_destacadas"]?.ToString()
+            }).ToList();
+
+        docenteSeleccionado = null; redFechaInicioTemp = null; redFechaFinTemp = null; redActDestacadasTemp = string.Empty;
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarDocente()
+    {
+        if (docenteSeleccionado == null || docentesAgregados.Any(x => x.docente == docenteSeleccionado.Value)) return;
+        docentesAgregados.Add(new RedDocenteTemp
+        {
+            docente = docenteSeleccionado.Value,
+            fecha_inicio = redFechaInicioTemp,
+            fecha_fin = redFechaFinTemp,
+            act_destacadas = redActDestacadasTemp
+        });
+        docenteSeleccionado = null;
+        redFechaInicioTemp = null;
+        redFechaFinTemp = null;
+        redActDestacadasTemp = string.Empty;
+    }
+
+    private void QuitarDocente(RedDocenteTemp item) => docentesAgregados.Remove(item);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["uri"] = campoUri, ["pas"] = campoPas
+            ["nombre"] = campoNombre,
+            ["uri"] = campoUri,
+            ["pas"] = campoPas
         };
+
         var resultado = editando
             ? await Api.ActualizarAsync("red", "idr", campoId, datos)
             : await Api.CrearAsync("red", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string redId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("red");
+            redId = todos.LastOrDefault()?["idr"]?.ToString() ?? "";
+        }
+
+        if (editando)
+        {
+            var existentes = await Api.ListarAsync("red_docente");
+            foreach (var item in existentes.Where(x => x["red"]?.ToString() == redId))
+                await Api.EliminarAsync("red_docente", redId, item["docente"]?.ToString() ?? "");
+        }
+
+        foreach (var item in docentesAgregados)
+            await Api.CrearAsync("red_docente", new Dictionary<string, object?>
+            {
+                ["red"] = int.Parse(redId),
+                ["docente"] = item.docente,
+                ["fecha_inicio"] = item.fecha_inicio?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = item.fecha_fin?.ToString("yyyy-MM-dd"),
+                ["act_destacadas"] = item.act_destacadas
+            });
+
+        exito = true;
+        mensaje = editando ? "Red actualizada correctamente" : "Red creada correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -140,4 +281,11 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombreDocente(int id)
+    {
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString();
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

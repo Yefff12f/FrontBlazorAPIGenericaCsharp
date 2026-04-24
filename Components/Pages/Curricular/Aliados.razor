@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Aliado" : "Nuevo Aliado")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Aliado" : "Nuevo Aliado")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -60,6 +60,104 @@
                         <input class="form-control" @bind="campoCiudad" />
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Proyectos del Aliado</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="proyectoSeleccionado">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var p in proyectos)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarProyecto">+ Agregar</button>
+                    </div>
+                </div>
+                @if (proyectosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Proyecto</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in proyectosAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(proyectos, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarProyecto(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay proyectos agregados.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Alianzas</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <select class="form-select" @bind="departamentoSeleccionado">
+                            <option value="">-- Departamento --</option>
+                            @foreach (var d in departamentosDisponibles)
+                            {
+                                <option value="@d">@d</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" @bind="docenteSeleccionado">
+                            <option value="">-- Docente --</option>
+                            @foreach (var d in docentes)
+                            {
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@alianzaFechaInicioTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => alianzaFechaInicioTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@alianzaFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => alianzaFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <button class="btn btn-outline-primary" @onclick="AgregarAlianza">+ Agregar Alianza</button>
+                    </div>
+                </div>
+                @if (alianzasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Departamento</th><th>Docente</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in alianzasAgregadas)
+                            {
+                                <tr>
+                                    <td>@item.departamento</td>
+                                    <td>@ObtenerNombreDocente(item.docente)</td>
+                                    <td>@item.fecha_inicio?.ToString("yyyy-MM-dd")</td>
+                                    <td>@item.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAlianza(item)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay alianzas agregadas.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -110,14 +208,45 @@
 </div>
 
 @code {
+    private class AlianzaTemp
+    {
+        public int departamento { get; set; }
+        public int? docente { get; set; }
+        public DateTime? fecha_inicio { get; set; }
+        public DateTime? fecha_fin { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> proyectos = new();
+    private List<Dictionary<string, object?>> docentes = new();
+    private List<Dictionary<string, object?>> relacionesDepartamentos = new();
+    private List<int> departamentosDisponibles = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoNombre = string.Empty, campoApellidos = string.Empty;
     private string campoEmpresa = string.Empty, campoDescripcion = string.Empty;
     private string campoCorreo = string.Empty, campoContacto = string.Empty, campoCiudad = string.Empty;
 
-    protected override async Task OnInitializedAsync() => await CargarRegistros();
+    private List<int> proyectosAgregados = new();
+    private List<AlianzaTemp> alianzasAgregadas = new();
+    private int? proyectoSeleccionado = null, departamentoSeleccionado = null, docenteSeleccionado = null;
+    private DateTime? alianzaFechaInicioTemp = null, alianzaFechaFinTemp = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        proyectos = await Api.ListarAsync("proyecto");
+        docentes = await Api.ListarAsync("docente");
+        relacionesDepartamentos = await Api.ListarAsync("docente_departamento");
+        departamentosDisponibles = relacionesDepartamentos
+            .Select(x => x["departamento"]?.ToString())
+            .Where(x => int.TryParse(x, out _))
+            .Select(x => int.Parse(x!))
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+        await CargarRegistros();
+    }
 
     private async Task CargarRegistros()
     {
@@ -129,13 +258,15 @@
     private void NuevoRegistro()
     {
         editando = false; campoId = string.Empty; campoNombre = string.Empty;
-        campoApellidos = string.Empty; campoEmpresa = string.Empty;
-        campoDescripcion = string.Empty; campoCorreo = string.Empty;
-        campoContacto = string.Empty; campoCiudad = string.Empty;
+        campoApellidos = string.Empty; campoEmpresa = string.Empty; campoDescripcion = string.Empty;
+        campoCorreo = string.Empty; campoContacto = string.Empty; campoCiudad = string.Empty;
+        proyectosAgregados = new(); alianzasAgregadas = new();
+        proyectoSeleccionado = null; departamentoSeleccionado = null; docenteSeleccionado = null;
+        alianzaFechaInicioTemp = null; alianzaFechaFinTemp = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
@@ -146,23 +277,116 @@
         campoCorreo = reg["correo"]?.ToString() ?? "";
         campoContacto = reg["contacto"]?.ToString() ?? "";
         campoCiudad = reg["ciudad"]?.ToString() ?? "";
+
+        var todosProyectos = await Api.ListarAsync("aliado_proyecto");
+        proyectosAgregados = todosProyectos
+            .Where(x => x["aliado"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["proyecto"]))
+            .ToList();
+
+        var todasAlianzas = await Api.ListarAsync("alianza");
+        alianzasAgregadas = todasAlianzas
+            .Where(x => x["aliado"]?.ToString() == campoId)
+            .Select(x => new AlianzaTemp
+            {
+                departamento = Convert.ToInt32(x["departamento"]),
+                docente = int.TryParse(x["docente"]?.ToString(), out var doc) ? doc : null,
+                fecha_inicio = DateTime.TryParse(x["fecha_inicio"]?.ToString(), out var fi) ? fi : null,
+                fecha_fin = DateTime.TryParse(x["fecha_fin"]?.ToString(), out var ff) ? ff : null
+            }).ToList();
+
+        proyectoSeleccionado = null; departamentoSeleccionado = null; docenteSeleccionado = null;
+        alianzaFechaInicioTemp = null; alianzaFechaFinTemp = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarProyecto()
+    {
+        if (proyectoSeleccionado == null || proyectosAgregados.Contains(proyectoSeleccionado.Value)) return;
+        proyectosAgregados.Add(proyectoSeleccionado.Value);
+        proyectoSeleccionado = null;
+    }
+
+    private void QuitarProyecto(int id) => proyectosAgregados.Remove(id);
+
+    private void AgregarAlianza()
+    {
+        if (departamentoSeleccionado == null) return;
+        if (alianzasAgregadas.Any(x => x.departamento == departamentoSeleccionado.Value)) return;
+
+        alianzasAgregadas.Add(new AlianzaTemp
+        {
+            departamento = departamentoSeleccionado.Value,
+            docente = docenteSeleccionado,
+            fecha_inicio = alianzaFechaInicioTemp,
+            fecha_fin = alianzaFechaFinTemp
+        });
+
+        departamentoSeleccionado = null;
+        docenteSeleccionado = null;
+        alianzaFechaInicioTemp = null;
+        alianzaFechaFinTemp = null;
+    }
+
+    private void QuitarAlianza(AlianzaTemp item) => alianzasAgregadas.Remove(item);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["apellidos"] = campoApellidos,
-            ["empresa"] = campoEmpresa, ["descripcion"] = campoDescripcion,
-            ["correo"] = campoCorreo, ["contacto"] = campoContacto,
+            ["nombre"] = campoNombre,
+            ["apellidos"] = campoApellidos,
+            ["empresa"] = campoEmpresa,
+            ["descripcion"] = campoDescripcion,
+            ["correo"] = campoCorreo,
+            ["contacto"] = campoContacto,
             ["ciudad"] = campoCiudad
         };
-        var resultado = editando
+
+        (bool exito, string mensaje) resultado = editando
             ? await Api.ActualizarAsync("aliado", "id", campoId, datos)
             : await Api.CrearAsync("aliado", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string aliadoId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("aliado");
+            aliadoId = todos.LastOrDefault()?["id"]?.ToString() ?? "";
+        }
+
+        if (editando)
+        {
+            var existentesProyectos = await Api.ListarAsync("aliado_proyecto");
+            foreach (var item in existentesProyectos.Where(x => x["aliado"]?.ToString() == aliadoId))
+                await Api.EliminarAsync("aliado_proyecto", aliadoId, item["proyecto"]?.ToString() ?? "");
+
+            var existentesAlianzas = await Api.ListarAsync("alianza");
+            foreach (var item in existentesAlianzas.Where(x => x["aliado"]?.ToString() == aliadoId))
+                await Api.EliminarAsync("alianza", aliadoId, item["departamento"]?.ToString() ?? "");
+        }
+
+        foreach (var id in proyectosAgregados)
+            await Api.CrearAsync("aliado_proyecto", new Dictionary<string, object?> { ["aliado"] = int.Parse(aliadoId), ["proyecto"] = id });
+
+        foreach (var item in alianzasAgregadas)
+            await Api.CrearAsync("alianza", new Dictionary<string, object?>
+            {
+                ["aliado"] = int.Parse(aliadoId),
+                ["departamento"] = item.departamento,
+                ["docente"] = item.docente,
+                ["fecha_inicio"] = item.fecha_inicio?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = item.fecha_fin?.ToString("yyyy-MM-dd")
+            });
+
+        exito = true;
+        mensaje = editando ? "Aliado actualizado correctamente" : "Aliado creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -173,4 +397,19 @@
     }
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
+
+    private string ObtenerNombre(List<Dictionary<string, object?>> lista, object? id, string campoId, string campoNombre)
+    {
+        if (id == null) return "";
+        var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
+        return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreDocente(object? id)
+    {
+        if (id == null) return "";
+        var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
+        if (item == null) return id.ToString() ?? "";
+        return $"{item["nombres"]} {item["apellidos"]}";
+    }
 }

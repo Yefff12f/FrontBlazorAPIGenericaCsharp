@@ -58,3 +58,28 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.perm-no-create .btn-primary.mb-3,
+.perm-no-create button.btn.btn-primary.mb-3 {
+    display: none !important;
+}
+
+.perm-no-edit .btn-warning,
+.perm-no-edit button.btn.btn-warning {
+    display: none !important;
+}
+
+.perm-no-delete .btn-danger,
+.perm-no-delete button.btn.btn-danger {
+    display: none !important;
+}
+
+.perm-no-save .btn-success,
+.perm-no-save button.btn.btn-success {
+    display: none !important;
+}
+
+.perm-no-intermediate .btn-outline-primary,
+.perm-no-intermediate button.btn.btn-outline-primary {
+    display: none !important;
+}

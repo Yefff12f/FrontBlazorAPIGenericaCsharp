@@ -32,6 +32,8 @@ builder.Services.AddScoped<AuthenticationService>(sp =>
         sp.GetRequiredService<IJSRuntime>()
     ));
 
+builder.Services.AddScoped<RolePermissionService>();
+
 // 🔹 HttpClient
 builder.Services.AddScoped(sp => new HttpClient
 {
@@ -43,6 +45,7 @@ builder.Services.AddScoped<ApiService>(sp =>
     new ApiService(
         sp.GetRequiredService<HttpClient>(),
         sp.GetRequiredService<AuthenticationService>(),
+        sp.GetRequiredService<RolePermissionService>(),
         sp.GetRequiredService<NavigationManager>()
     ));
 

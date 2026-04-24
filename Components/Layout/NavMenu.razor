@@ -1,5 +1,6 @@
 ﻿@rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.AuthenticationService AuthService
+@inject FrontBlazor_AppiGenericaCsharp.Services.RolePermissionService PermissionService
 @inject Microsoft.AspNetCore.Components.NavigationManager Nav
 @using Microsoft.AspNetCore.Components.Routing
 
@@ -20,7 +21,6 @@
             </NavLink>
         </div>
 
-        @* ── INVESTIGACIÓN ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">INVESTIGACIÓN</span>
         </div>
@@ -40,8 +40,7 @@
             </NavLink>
         </div>
 
-        @* Intermedias Investigación - solo admin *@
-        @if (AuthService.GetRol() == "admin")
+        @if (PuedeVer("/semillero-lineas"))
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/semillero-lineas">
@@ -80,7 +79,6 @@
             </div>
         }
 
-        @* ── CARACTERIZACIÓN ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">CARACTERIZACIÓN</span>
         </div>
@@ -100,29 +98,27 @@
             </NavLink>
         </div>
 
-        @* ── PROYECTO ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">PROYECTO</span>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Proyectos">
+            <NavLink class="nav-link" href="/proyectos">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Proyecto
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/Productos">
+            <NavLink class="nav-link" href="/productos">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Productos
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="/desarrolla">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Desarrolla
-            </NavLink>
-        </div>
 
-        @* Intermedias Proyecto - solo admin *@
-        @if (AuthService.GetRol() == "admin")
+        @if (PuedeVer("/desarrolla"))
         {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/desarrolla">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Desarrolla
+                </NavLink>
+            </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/ac-proyectos">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC — Proyecto
@@ -160,7 +156,6 @@
             </div>
         }
 
-        @* ── CURRICULAR ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">CURRICULAR</span>
         </div>
@@ -240,8 +235,7 @@
             </NavLink>
         </div>
 
-        @* Intermedias Curricular - solo admin *@
-        @if (AuthService.GetRol() == "admin")
+        @if (PuedeVer("/programas-ci"))
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/programas-ci">
@@ -275,7 +269,6 @@
             </div>
         }
 
-        @* ── PROFESIONAL ── *@
         <div class="nav-item px-3 mt-2">
             <span class="nav-link text-muted fw-bold" style="font-size:0.75rem; letter-spacing:0.05rem;">PROFESIONAL</span>
         </div>
@@ -320,8 +313,7 @@
             </NavLink>
         </div>
 
-        @* Intermedias Profesional - solo admin *@
-        @if (AuthService.GetRol() == "admin")
+        @if (PuedeVer("/red-docentes"))
         {
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/red-docentes">
@@ -350,6 +342,8 @@
 </div>
 
 @code {
+    private bool PuedeVer(string path) => PermissionService.CanAccessPath(path);
+
     private async Task LogoutAsync()
     {
         await AuthService.LogoutAsync();

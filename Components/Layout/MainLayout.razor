@@ -1,6 +1,8 @@
-﻿@rendermode InteractiveServer
+@rendermode InteractiveServer
 @inherits LayoutComponentBase
 @inject AuthenticationService AuthService
+@inject RolePermissionService PermissionService
+@inject NavigationManager Nav
 @implements IDisposable
 
 <div class="page">
@@ -16,7 +18,7 @@
             <span>Frontend Blazor — API GenericaCsharp</span>
         </div>
 
-        <article class="content px-4">
+        <article class="content px-4 @GetPermissionCssClass()">
             @Body
         </article>
     </main>
@@ -28,27 +30,55 @@
 </div>
 
 @code {
-    private bool _initialized = false;
-
     protected override void OnInitialized()
     {
-        // 👂 Escucha cambios de login/logout
         AuthService.OnAuthenticationChanged += StateHasChanged;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // 🔥 AQUÍ sí puedes usar JS (localStorage)
-        if (firstRender && !_initialized)
-        {
-            _initialized = true;
-            await AuthService.InitializeAsync();
-            StateHasChanged();
-        }
+        Nav.LocationChanged += OnLocationChanged;
     }
 
     public void Dispose()
     {
         AuthService.OnAuthenticationChanged -= StateHasChanged;
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private string GetPermissionCssClass()
+    {
+        var path = "/" + Nav.ToBaseRelativePath(Nav.Uri).Trim('/').ToLowerInvariant();
+        var permisos = PermissionService.GetUiPermissionsForPath(path);
+
+        var clases = new List<string>();
+
+        if (!permisos.CanCreate)
+        {
+            clases.Add("perm-no-create");
+        }
+
+        if (!permisos.CanEdit)
+        {
+            clases.Add("perm-no-edit");
+        }
+
+        if (!permisos.CanDelete)
+        {
+            clases.Add("perm-no-delete");
+        }
+
+        if (!permisos.CanSave)
+        {
+            clases.Add("perm-no-save");
+        }
+
+        if (!permisos.CanManageIntermediates)
+        {
+            clases.Add("perm-no-intermediate");
+        }
+
+        return string.Join(" ", clases);
     }
 }

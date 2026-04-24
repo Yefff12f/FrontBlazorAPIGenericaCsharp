@@ -34,6 +34,8 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public bool IsAuthenticated() => !string.IsNullOrEmpty(_token);
 
+        public string GetUsuario() => GetClaimValue(ClaimTypes.Name);
+
         // 🔐 GUARDA EN LOCALSTORAGE
         public async Task SetTokenAsync(string token)
         {
@@ -62,6 +64,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public string GetRol()
         {
+            return GetClaimValue(ClaimTypes.Role);
+        }
+
+        private string GetClaimValue(string claimType)
+        {
             if (string.IsNullOrEmpty(_token)) return "";
 
             var payload = _token.Split('.')[1];
@@ -77,8 +84,8 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 .Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(jsonBytes);
 
             if (keyValuePairs != null &&
-                keyValuePairs.TryGetValue(ClaimTypes.Role, out var role))
-                return role.GetString() ?? "";
+                keyValuePairs.TryGetValue(claimType, out var claim))
+                return claim.GetString() ?? "";
 
             return "";
         }

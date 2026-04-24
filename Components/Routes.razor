@@ -1,33 +1,74 @@
-﻿@rendermode InteractiveServer
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Authorization
 @using FrontBlazor_AppiGenericaCsharp.Components
+@inject AuthenticationService AuthService
+@inject RolePermissionService PermissionService
+@inject NavigationManager Nav
 
-<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(Program).Assembly">
-        <Found Context="routeData">
+@if (!_authReady)
+{
+    <div class="container py-5">
+        <p>Cargando acceso...</p>
+    </div>
+}
+else
+{
+    <CascadingAuthenticationState>
+        <Router AppAssembly="@typeof(Program).Assembly">
+            <Found Context="routeData">
+                @if (DebeRedirigirALogin())
+                {
+                    <RedirectToLogin />
+                }
+                else if (!PermissionService.CanAccessPath(CurrentPath))
+                {
+                    <LayoutView Layout="@typeof(Layout.MainLayout)">
+                        <div class="alert alert-danger mt-4">
+                            No tienes permisos para acceder a esta pagina.
+                        </div>
+                    </LayoutView>
+                }
+                else
+                {
+                    <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+                    <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+                }
+            </Found>
 
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
+            <NotFound>
+                <LayoutView Layout="@typeof(Layout.MainLayout)">
+                    <p>Página no encontrada</p>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
+}
 
-                <NotAuthorized>
-                    @if (!(context.User.Identity?.IsAuthenticated ?? false))
-                    {
-                        <RedirectToLogin />
-                    }
-                    else
-                    {
-                        <p>No tienes permisos</p>
-                    }
-                </NotAuthorized>
+@code {
+    private bool _authReady;
 
-            </AuthorizeRouteView>
+    private string CurrentPath =>
+        "/" + Nav.ToBaseRelativePath(Nav.Uri).Trim('/').ToLowerInvariant();
 
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
 
-        <NotFound>
-            <LayoutView Layout="@typeof(Layout.MainLayout)">
-                <p>Página no encontrada</p>
-            </LayoutView>
-        </NotFound>
-    </Router>
-</CascadingAuthenticationState>
+        await AuthService.InitializeAsync();
+        _authReady = true;
+        StateHasChanged();
+    }
+
+    private bool DebeRedirigirALogin()
+    {
+        if (CurrentPath == "/login")
+        {
+            return false;
+        }
+
+        return !AuthService.IsAuthenticated();
+    }
+}

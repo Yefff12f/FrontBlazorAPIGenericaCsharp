@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Estudio" : "Nuevo Estudio")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Estudio" : "Nuevo Estudio")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -80,6 +80,129 @@
                         </select>
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Conocimiento</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="areaSeleccionada">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in areasConocimiento)
+                            {
+                                <option value="@a["id"]">@ObtenerNombreArea(a)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarArea">+ Agregar</button>
+                    </div>
+                </div>
+                @if (areasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Área</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in areasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreArea(id)</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarArea(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay áreas de conocimiento agregadas.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Beca</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Tipo" @bind="becaTipoTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Institución" @bind="becaInstitucionTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@becaFechaInicioTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => becaFechaInicioTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" type="date"
+                            value="@becaFechaFinTemp?.ToString("yyyy-MM-dd")"
+                            @onchange="e => becaFechaFinTemp = e.Value?.ToString() is string s && s != string.Empty ? DateTime.Parse(s) : null" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <input class="form-control" placeholder="País" @bind="becaPaisTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarBeca">Configurar Beca</button>
+                    </div>
+                </div>
+                @if (becaTemp is not null)
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Tipo</th><th>Institución</th><th>Fecha Ini</th><th>Fecha Fin</th><th>País</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>@becaTemp.tipo</td>
+                                <td>@becaTemp.institucion</td>
+                                <td>@becaTemp.fecha_inicio?.ToString("yyyy-MM-dd")</td>
+                                <td>@becaTemp.fecha_fin?.ToString("yyyy-MM-dd")</td>
+                                <td>@becaTemp.pais</td>
+                                <td><button class="btn btn-danger btn-sm" @onclick="QuitarBeca">Quitar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay beca configurada.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Apoyo Profesoral</h6>
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <label class="form-label">Con apoyo</label>
+                        <input class="form-check-input ms-2" type="checkbox" @bind="apoyoConApoyoTemp" />
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" placeholder="Institución" @bind="apoyoInstitucionTemp" />
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" placeholder="Tipo" @bind="apoyoTipoTemp" />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarApoyo">Configurar</button>
+                    </div>
+                </div>
+                @if (apoyoTemp is not null)
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Con Apoyo</th><th>Institución</th><th>Tipo</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>@apoyoTemp.con_apoyo</td>
+                                <td>@apoyoTemp.institucion</td>
+                                <td>@apoyoTemp.tipo</td>
+                                <td><button class="btn btn-danger btn-sm" @onclick="QuitarApoyo">Quitar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay apoyo profesoral configurado.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -127,8 +250,26 @@
 </div>
 
 @code {
+    private class BecaTemp
+    {
+        public string? tipo { get; set; }
+        public string? institucion { get; set; }
+        public DateTime? fecha_inicio { get; set; }
+        public DateTime? fecha_fin { get; set; }
+        public string? pais { get; set; }
+    }
+
+    private class ApoyoTemp
+    {
+        public bool? con_apoyo { get; set; }
+        public string? institucion { get; set; }
+        public string? tipo { get; set; }
+    }
+
     private List<Dictionary<string, object?>> registros = new();
     private List<Dictionary<string, object?>> docentes = new();
+    private List<Dictionary<string, object?>> areasConocimiento = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoTitulo = string.Empty, campoUniversidad = string.Empty;
@@ -138,9 +279,20 @@
     private int? campoDocente = null;
     private bool campoInsAcreditada = false;
 
+    private List<int> areasAgregadas = new();
+    private int? areaSeleccionada = null;
+    private BecaTemp? becaTemp = null;
+    private ApoyoTemp? apoyoTemp = null;
+
+    private string becaTipoTemp = string.Empty, becaInstitucionTemp = string.Empty, becaPaisTemp = string.Empty;
+    private DateTime? becaFechaInicioTemp = null, becaFechaFinTemp = null;
+    private bool apoyoConApoyoTemp = false;
+    private string apoyoInstitucionTemp = string.Empty, apoyoTipoTemp = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         docentes = await Api.ListarAsync("docente");
+        areasConocimiento = await Api.ListarAsync("area_conocimiento");
         await CargarRegistros();
     }
 
@@ -157,10 +309,12 @@
         campoUniversidad = string.Empty; campoFecha = null; campoTipo = string.Empty;
         campoCiudad = string.Empty; campoDocente = null; campoInsAcreditada = false;
         campoMetodologia = string.Empty; campoPerfilEgresado = string.Empty; campoPais = string.Empty;
+        areasAgregadas = new(); areaSeleccionada = null; becaTemp = null; apoyoTemp = null;
+        LimpiarTempBeca(); LimpiarTempApoyo();
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         campoId = reg.GetValueOrDefault("id")?.ToString() ?? "";
@@ -174,24 +328,149 @@
         campoPais = reg.GetValueOrDefault("pais")?.ToString() ?? "";
         campoInsAcreditada = reg.GetValueOrDefault("ins_acreditada") as bool? ?? false;
         if (int.TryParse(reg.GetValueOrDefault("docente")?.ToString(), out int d)) campoDocente = d;
+
+        var todasAreas = await Api.ListarAsync("estudio_ac");
+        areasAgregadas = todasAreas
+            .Where(x => x["estudio"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["area_conocimiento"]))
+            .ToList();
+
+        var todasBecas = await Api.ListarAsync("beca");
+        var beca = todasBecas.FirstOrDefault(x => x["estudios"]?.ToString() == campoId);
+        becaTemp = beca == null ? null : new BecaTemp
+        {
+            tipo = beca["tipo"]?.ToString(),
+            institucion = beca["institucion"]?.ToString(),
+            fecha_inicio = DateTime.TryParse(beca["fecha_inicio"]?.ToString(), out var fi) ? fi : null,
+            fecha_fin = DateTime.TryParse(beca["fecha_fin"]?.ToString(), out var ff) ? ff : null,
+            pais = beca["pais"]?.ToString()
+        };
+
+        var todosApoyos = await Api.ListarAsync("apoyo_profesoral");
+        var apoyo = todosApoyos.FirstOrDefault(x => x["estudios"]?.ToString() == campoId);
+        apoyoTemp = apoyo == null ? null : new ApoyoTemp
+        {
+            con_apoyo = apoyo["con_apoyo"] as bool?,
+            institucion = apoyo["institucion"]?.ToString(),
+            tipo = apoyo["tipo"]?.ToString()
+        };
+
+        areaSeleccionada = null;
+        LimpiarTempBeca();
+        LimpiarTempApoyo();
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarArea()
+    {
+        if (areaSeleccionada == null || areasAgregadas.Contains(areaSeleccionada.Value)) return;
+        areasAgregadas.Add(areaSeleccionada.Value);
+        areaSeleccionada = null;
+    }
+
+    private void QuitarArea(int id) => areasAgregadas.Remove(id);
+
+    private void AgregarBeca()
+    {
+        becaTemp = new BecaTemp
+        {
+            tipo = becaTipoTemp,
+            institucion = becaInstitucionTemp,
+            fecha_inicio = becaFechaInicioTemp,
+            fecha_fin = becaFechaFinTemp,
+            pais = becaPaisTemp
+        };
+        LimpiarTempBeca();
+    }
+
+    private void QuitarBeca() => becaTemp = null;
+
+    private void AgregarApoyo()
+    {
+        apoyoTemp = new ApoyoTemp
+        {
+            con_apoyo = apoyoConApoyoTemp,
+            institucion = apoyoInstitucionTemp,
+            tipo = apoyoTipoTemp
+        };
+        LimpiarTempApoyo();
+    }
+
+    private void QuitarApoyo() => apoyoTemp = null;
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["titulo"] = campoTitulo, ["universidad"] = campoUniversidad,
-            ["fecha"] = campoFecha?.ToString("yyyy-MM-dd"), ["tipo"] = campoTipo,
-            ["ciudad"] = campoCiudad, ["docente"] = campoDocente,
-            ["ins_acreditada"] = campoInsAcreditada, ["metodologia"] = campoMetodologia,
-            ["perfil_egresado"] = campoPerfilEgresado, ["pais"] = campoPais
+            ["titulo"] = campoTitulo,
+            ["universidad"] = campoUniversidad,
+            ["fecha"] = campoFecha?.ToString("yyyy-MM-dd"),
+            ["tipo"] = campoTipo,
+            ["ciudad"] = campoCiudad,
+            ["docente"] = campoDocente,
+            ["ins_acreditada"] = campoInsAcreditada,
+            ["metodologia"] = campoMetodologia,
+            ["perfil_egresado"] = campoPerfilEgresado,
+            ["pais"] = campoPais
         };
+
         var resultado = editando
             ? await Api.ActualizarAsync("estudios_realizados", "id", campoId, datos)
             : await Api.CrearAsync("estudios_realizados", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string estudioId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("estudios_realizados");
+            estudioId = todos.LastOrDefault()?["id"]?.ToString() ?? "";
+        }
+
+        if (editando)
+        {
+            var todasAreas = await Api.ListarAsync("estudio_ac");
+            foreach (var item in todasAreas.Where(x => x["estudio"]?.ToString() == estudioId))
+                await Api.EliminarAsync("estudio_ac", estudioId, item["area_conocimiento"]?.ToString() ?? "");
+
+            await Api.EliminarAsync("beca", "estudios", estudioId);
+            await Api.EliminarAsync("apoyo_profesoral", "estudios", estudioId);
+        }
+
+        foreach (var id in areasAgregadas)
+            await Api.CrearAsync("estudio_ac", new Dictionary<string, object?> { ["estudio"] = int.Parse(estudioId), ["area_conocimiento"] = id });
+
+        if (becaTemp is not null)
+        {
+            await Api.CrearAsync("beca", new Dictionary<string, object?>
+            {
+                ["estudios"] = int.Parse(estudioId),
+                ["tipo"] = becaTemp.tipo,
+                ["institucion"] = becaTemp.institucion,
+                ["fecha_inicio"] = becaTemp.fecha_inicio?.ToString("yyyy-MM-dd"),
+                ["fecha_fin"] = becaTemp.fecha_fin?.ToString("yyyy-MM-dd"),
+                ["pais"] = becaTemp.pais
+            });
+        }
+
+        if (apoyoTemp is not null)
+        {
+            await Api.CrearAsync("apoyo_profesoral", new Dictionary<string, object?>
+            {
+                ["estudios"] = int.Parse(estudioId),
+                ["con_apoyo"] = apoyoTemp.con_apoyo,
+                ["institucion"] = apoyoTemp.institucion,
+                ["tipo"] = apoyoTemp.tipo
+            });
+        }
+
+        exito = true;
+        mensaje = editando ? "Estudio actualizado correctamente" : "Estudio creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -203,11 +482,41 @@
 
     private void Cancelar() { mostrarFormulario = false; mensaje = string.Empty; }
 
+    private void LimpiarTempBeca()
+    {
+        becaTipoTemp = string.Empty;
+        becaInstitucionTemp = string.Empty;
+        becaPaisTemp = string.Empty;
+        becaFechaInicioTemp = null;
+        becaFechaFinTemp = null;
+    }
+
+    private void LimpiarTempApoyo()
+    {
+        apoyoConApoyoTemp = false;
+        apoyoInstitucionTemp = string.Empty;
+        apoyoTipoTemp = string.Empty;
+    }
+
     private string ObtenerNombreDocente(object? id)
     {
         if (id == null) return "";
         var item = docentes.FirstOrDefault(x => x["cedula"]?.ToString() == id.ToString());
         if (item == null) return id.ToString() ?? "";
         return $"{item["nombres"]} {item["apellidos"]}";
+    }
+
+    private string ObtenerNombreArea(Dictionary<string, object?>? item)
+    {
+        if (item == null) return "";
+        var area = item["area"]?.ToString() ?? "";
+        var disciplina = item["disciplina"]?.ToString() ?? "";
+        return string.IsNullOrWhiteSpace(disciplina) ? area : $"{area} - {disciplina}";
+    }
+
+    private string ObtenerNombreArea(int id)
+    {
+        var item = areasConocimiento.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        return ObtenerNombreArea(item);
     }
 }

@@ -21,7 +21,7 @@
     @if (mostrarFormulario)
     {
         <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Programa" : "Nuevo Programa")</div>
+            <div class="card-header fw-bold">@(editando ? "Editar Programa" : "Nuevo Programa")</div>
             <div class="card-body">
                 <div class="row">
                     @if (editando)
@@ -78,6 +78,152 @@
                         </select>
                     </div>
                 </div>
+
+                <hr />
+                <h6 class="text-muted mb-2">Características de Innovación</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="ciSeleccionada">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var c in carInnovaciones)
+                            {
+                                <option value="@c["id"]">@c["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarCi">+ Agregar</button>
+                    </div>
+                </div>
+                @if (cisAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Característica</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in cisAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(carInnovaciones, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarCi(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay características de innovación agregadas.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Aspectos Normativos</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="aspectoSeleccionado">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in aspectosNormativos)
+                            {
+                                <option value="@a["id"]">@a["aspecto_norm_ac"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarAspecto">+ Agregar</button>
+                    </div>
+                </div>
+                @if (aspectosAgregados.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Aspecto</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in aspectosAgregados)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(aspectosNormativos, id, "id", "aspecto_norm_ac")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarAspecto(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay aspectos normativos agregados.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Áreas de Conocimiento</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="areaSeleccionada">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var a in areasConocimiento)
+                            {
+                                <option value="@a["id"]">@ObtenerNombreArea(a)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarArea">+ Agregar</button>
+                    </div>
+                </div>
+                @if (areasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Área</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in areasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombreArea(id)</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarArea(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay áreas de conocimiento agregadas.</div>
+                }
+
+                <hr />
+                <h6 class="text-muted mb-2">Prácticas y Estrategias</h6>
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        <select class="form-select" @bind="practicaSeleccionada">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var p in practicas)
+                            {
+                                <option value="@p["id"]">@p["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100" @onclick="AgregarPractica">+ Agregar</button>
+                    </div>
+                </div>
+                @if (practicasAgregadas.Any())
+                {
+                    <table class="table table-sm table-bordered mb-3">
+                        <thead class="table-secondary"><tr><th>Práctica</th><th>Acciones</th></tr></thead>
+                        <tbody>
+                            @foreach (var id in practicasAgregadas)
+                            {
+                                <tr>
+                                    <td>@ObtenerNombre(practicas, id, "id", "nombre")</td>
+                                    <td><button class="btn btn-danger btn-sm" @onclick="() => QuitarPractica(id)">Quitar</button></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-3">No hay prácticas agregadas.</div>
+                }
+
+                <hr />
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
@@ -126,6 +272,11 @@
 @code {
     private List<Dictionary<string, object?>> registros = new();
     private List<Dictionary<string, object?>> facultades = new();
+    private List<Dictionary<string, object?>> carInnovaciones = new();
+    private List<Dictionary<string, object?>> aspectosNormativos = new();
+    private List<Dictionary<string, object?>> areasConocimiento = new();
+    private List<Dictionary<string, object?>> practicas = new();
+
     private bool cargando = true, mostrarFormulario = false, editando = false, exito = false;
     private string mensaje = string.Empty, campoId = string.Empty;
     private string campoNombre = string.Empty, campoTipo = string.Empty;
@@ -133,9 +284,20 @@
     private DateTime? campoFechaCreacion = null, campoFechaActualizacion = null;
     private int? campoNumCreditos = null, campoCantSemestres = null, campoFacultad = null;
 
+    private List<int> cisAgregadas = new();
+    private List<int> aspectosAgregados = new();
+    private List<int> areasAgregadas = new();
+    private List<int> practicasAgregadas = new();
+
+    private int? ciSeleccionada = null, aspectoSeleccionado = null, areaSeleccionada = null, practicaSeleccionada = null;
+
     protected override async Task OnInitializedAsync()
     {
         facultades = await Api.ListarAsync("facultad");
+        carInnovaciones = await Api.ListarAsync("car_innovacion");
+        aspectosNormativos = await Api.ListarAsync("aspecto_normativo");
+        areasConocimiento = await Api.ListarAsync("area_conocimiento");
+        practicas = await Api.ListarAsync("practica_estrategia");
         await CargarRegistros();
     }
 
@@ -152,10 +314,12 @@
         campoTipo = string.Empty; campoPais = string.Empty; campoCiudad = string.Empty;
         campoFechaCreacion = null; campoFechaActualizacion = null;
         campoNumCreditos = null; campoCantSemestres = null; campoFacultad = null;
+        cisAgregadas = new(); aspectosAgregados = new(); areasAgregadas = new(); practicasAgregadas = new();
+        ciSeleccionada = null; aspectoSeleccionado = null; areaSeleccionada = null; practicaSeleccionada = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
     {
         editando = true;
         campoId = reg["id"]?.ToString() ?? "";
@@ -168,24 +332,113 @@
         if (int.TryParse(reg["num_creditos"]?.ToString(), out int nc)) campoNumCreditos = nc;
         if (int.TryParse(reg["cant_semestres"]?.ToString(), out int cs)) campoCantSemestres = cs;
         if (int.TryParse(reg["facultad"]?.ToString(), out int fac)) campoFacultad = fac;
+
+        var todasCi = await Api.ListarAsync("programa_ci");
+        cisAgregadas = todasCi
+            .Where(x => x["programa"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["car_innovacion"]))
+            .ToList();
+
+        var todosAspectos = await Api.ListarAsync("an_programa");
+        aspectosAgregados = todosAspectos
+            .Where(x => x["programa"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["aspecto_normativo"]))
+            .ToList();
+
+        var todasAreas = await Api.ListarAsync("programa_ac");
+        areasAgregadas = todasAreas
+            .Where(x => x["programa"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["area_conocimiento"]))
+            .ToList();
+
+        var todasPracticas = await Api.ListarAsync("programa_pe");
+        practicasAgregadas = todasPracticas
+            .Where(x => x["programa"]?.ToString() == campoId)
+            .Select(x => Convert.ToInt32(x["practica_estrategia"]))
+            .ToList();
+
+        ciSeleccionada = null; aspectoSeleccionado = null; areaSeleccionada = null; practicaSeleccionada = null;
         mostrarFormulario = true; mensaje = string.Empty;
     }
+
+    private void AgregarCi() { if (ciSeleccionada == null || cisAgregadas.Contains(ciSeleccionada.Value)) return; cisAgregadas.Add(ciSeleccionada.Value); ciSeleccionada = null; }
+    private void QuitarCi(int id) => cisAgregadas.Remove(id);
+
+    private void AgregarAspecto() { if (aspectoSeleccionado == null || aspectosAgregados.Contains(aspectoSeleccionado.Value)) return; aspectosAgregados.Add(aspectoSeleccionado.Value); aspectoSeleccionado = null; }
+    private void QuitarAspecto(int id) => aspectosAgregados.Remove(id);
+
+    private void AgregarArea() { if (areaSeleccionada == null || areasAgregadas.Contains(areaSeleccionada.Value)) return; areasAgregadas.Add(areaSeleccionada.Value); areaSeleccionada = null; }
+    private void QuitarArea(int id) => areasAgregadas.Remove(id);
+
+    private void AgregarPractica() { if (practicaSeleccionada == null || practicasAgregadas.Contains(practicaSeleccionada.Value)) return; practicasAgregadas.Add(practicaSeleccionada.Value); practicaSeleccionada = null; }
+    private void QuitarPractica(int id) => practicasAgregadas.Remove(id);
 
     private async Task GuardarRegistro()
     {
         var datos = new Dictionary<string, object?>
         {
-            ["nombre"] = campoNombre, ["tipo"] = campoTipo,
+            ["nombre"] = campoNombre,
+            ["tipo"] = campoTipo,
             ["fecha_creacion"] = campoFechaCreacion?.ToString("yyyy-MM-dd"),
-            ["num_creditos"] = campoNumCreditos, ["cant_semestres"] = campoCantSemestres,
+            ["num_creditos"] = campoNumCreditos,
+            ["cant_semestres"] = campoCantSemestres,
             ["fecha_actualizacion"] = campoFechaActualizacion?.ToString("yyyy-MM-dd"),
-            ["pais"] = campoPais, ["ciudad"] = campoCiudad, ["facultad"] = campoFacultad
+            ["pais"] = campoPais,
+            ["ciudad"] = campoCiudad,
+            ["facultad"] = campoFacultad
         };
-        var resultado = editando
+
+        (bool exito, string mensaje) resultado = editando
             ? await Api.ActualizarAsync("programa", "id", campoId, datos)
             : await Api.CrearAsync("programa", datos);
-        exito = resultado.exito; mensaje = resultado.mensaje;
-        if (exito) { mostrarFormulario = false; await CargarRegistros(); }
+
+        if (!resultado.exito)
+        {
+            exito = false; mensaje = resultado.mensaje; return;
+        }
+
+        string programaId = campoId;
+        if (!editando)
+        {
+            var todos = await Api.ListarAsync("programa");
+            programaId = todos.LastOrDefault()?["id"]?.ToString() ?? "";
+        }
+
+        if (editando)
+        {
+            var existentesCi = await Api.ListarAsync("programa_ci");
+            foreach (var item in existentesCi.Where(x => x["programa"]?.ToString() == programaId))
+                await Api.EliminarAsync("programa_ci", programaId, item["car_innovacion"]?.ToString() ?? "");
+
+            var existentesAspectos = await Api.ListarAsync("an_programa");
+            foreach (var item in existentesAspectos.Where(x => x["programa"]?.ToString() == programaId))
+                await Api.EliminarAsync("an_programa", item["aspecto_normativo"]?.ToString() ?? "", programaId);
+
+            var existentesAreas = await Api.ListarAsync("programa_ac");
+            foreach (var item in existentesAreas.Where(x => x["programa"]?.ToString() == programaId))
+                await Api.EliminarAsync("programa_ac", programaId, item["area_conocimiento"]?.ToString() ?? "");
+
+            var existentesPracticas = await Api.ListarAsync("programa_pe");
+            foreach (var item in existentesPracticas.Where(x => x["programa"]?.ToString() == programaId))
+                await Api.EliminarAsync("programa_pe", programaId, item["practica_estrategia"]?.ToString() ?? "");
+        }
+
+        foreach (var id in cisAgregadas)
+            await Api.CrearAsync("programa_ci", new Dictionary<string, object?> { ["programa"] = int.Parse(programaId), ["car_innovacion"] = id });
+
+        foreach (var id in aspectosAgregados)
+            await Api.CrearAsync("an_programa", new Dictionary<string, object?> { ["aspecto_normativo"] = id, ["programa"] = int.Parse(programaId) });
+
+        foreach (var id in areasAgregadas)
+            await Api.CrearAsync("programa_ac", new Dictionary<string, object?> { ["programa"] = int.Parse(programaId), ["area_conocimiento"] = id });
+
+        foreach (var id in practicasAgregadas)
+            await Api.CrearAsync("programa_pe", new Dictionary<string, object?> { ["programa"] = int.Parse(programaId), ["practica_estrategia"] = id });
+
+        exito = true;
+        mensaje = editando ? "Programa actualizado correctamente" : "Programa creado correctamente";
+        mostrarFormulario = false;
+        await CargarRegistros();
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg)
@@ -202,5 +455,19 @@
         if (id == null) return "";
         var item = lista.FirstOrDefault(x => x[campoId]?.ToString() == id.ToString());
         return item?[campoNombre]?.ToString() ?? id.ToString() ?? "";
+    }
+
+    private string ObtenerNombreArea(Dictionary<string, object?>? item)
+    {
+        if (item == null) return "";
+        var area = item["area"]?.ToString() ?? "";
+        var disciplina = item["disciplina"]?.ToString() ?? "";
+        return string.IsNullOrWhiteSpace(disciplina) ? area : $"{area} - {disciplina}";
+    }
+
+    private string ObtenerNombreArea(int id)
+    {
+        var item = areasConocimiento.FirstOrDefault(x => x["id"]?.ToString() == id.ToString());
+        return ObtenerNombreArea(item);
     }
 }
