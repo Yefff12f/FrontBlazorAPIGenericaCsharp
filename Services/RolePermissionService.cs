@@ -100,6 +100,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
             "/intereses-futuros"
         };
 
+        private static readonly HashSet<string> AdminPaths = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "/usuarios"
+        };
+
         private static readonly HashSet<string> InvestigacionTables = new(StringComparer.OrdinalIgnoreCase)
         {
             "grupo_investigacion",
@@ -205,6 +210,13 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public bool CanAccessPath(string path)
         {
+            path = NormalizePath(path);
+
+            if (AdminPaths.Contains(path))
+            {
+                return GetRole() == "admin";
+            }
+
             var module = GetModuleByPath(path);
             if (module == ModuleType.Public)
             {
@@ -239,8 +251,16 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public UiPermissions GetUiPermissionsForPath(string path)
         {
+            path = NormalizePath(path);
             var module = GetModuleByPath(path);
             var role = GetRole();
+
+            if (AdminPaths.Contains(path))
+            {
+                return role == "admin"
+                    ? UiPermissions.FullAccess()
+                    : UiPermissions.NoAccess();
+            }
 
             if (module == ModuleType.Public || role == "admin")
             {

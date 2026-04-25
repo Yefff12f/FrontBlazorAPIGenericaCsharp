@@ -1,0 +1,197 @@
+@page "/usuarios"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Usuarios y Roles</h3>
+    <p class="text-muted">Solo el administrador puede crear, editar y eliminar usuarios del sistema.</p>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Usuario</button>
+    }
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">@(editando ? "Editar Usuario" : "Nuevo Usuario")</div>
+            <div class="card-body">
+                <div class="row">
+                    @if (editando)
+                    {
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Id</label>
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Usuario</label>
+                        <input class="form-control" @bind="campoUsuario" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Rol</label>
+                        <select class="form-select" @bind="campoRol">
+                            <option value="">-- Seleccione --</option>
+                            @foreach (var rol in roles)
+                            {
+                                <option value="@rol["id"]">@rol["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Contraseña @(editando ? "(opcional)" : string.Empty)</label>
+                        <input class="form-control" type="password" @bind="campoPassword" />
+                    </div>
+                </div>
+
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+
+    @if (!cargando && registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@reg["id"]</td>
+                        <td>@reg["usuario"]</td>
+                        <td>@reg["rol"]</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(reg)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (!cargando && !registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron usuarios registrados.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> roles = new();
+    private bool cargando = true;
+    private bool mostrarFormulario;
+    private bool editando;
+    private bool exito;
+    private string mensaje = string.Empty;
+    private string campoId = string.Empty;
+    private string campoUsuario = string.Empty;
+    private string campoRol = string.Empty;
+    private string campoPassword = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        roles = await Api.ListarAsync("usuarios/roles");
+        await CargarRegistros();
+    }
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = await Api.ListarAsync("usuarios");
+        cargando = false;
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+        campoId = string.Empty;
+        campoUsuario = string.Empty;
+        campoRol = string.Empty;
+        campoPassword = string.Empty;
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        campoId = reg["id"]?.ToString() ?? string.Empty;
+        campoUsuario = reg["usuario"]?.ToString() ?? string.Empty;
+        campoRol = reg["rol"]?.ToString() ?? string.Empty;
+        campoPassword = string.Empty;
+        mostrarFormulario = true;
+        mensaje = string.Empty;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        var datos = new Dictionary<string, object?>
+        {
+            ["usuario"] = campoUsuario,
+            ["rol"] = campoRol,
+            ["password"] = string.IsNullOrWhiteSpace(campoPassword) ? null : campoPassword
+        };
+
+        if (!editando && string.IsNullOrWhiteSpace(campoPassword))
+        {
+            exito = false;
+            mensaje = "La contraseña es obligatoria para crear un usuario.";
+            return;
+        }
+
+        var resultado = editando
+            ? await Api.ActualizarAsync("usuarios", "id", campoId, datos)
+            : await Api.CrearAsync("usuarios", datos);
+
+        exito = resultado.exito;
+        mensaje = resultado.mensaje;
+
+        if (exito)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        var resultado = await Api.EliminarAsync("usuarios", "id", reg["id"]?.ToString() ?? string.Empty);
+        exito = resultado.exito;
+        mensaje = resultado.mensaje;
+
+        if (exito)
+        {
+            await CargarRegistros();
+        }
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+        mensaje = string.Empty;
+    }
+}
