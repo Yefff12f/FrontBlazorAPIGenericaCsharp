@@ -19,7 +19,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
             _js = js;
         }
 
-        // 🔥 RESTAURA TOKEN AL INICIAR
+        //  RESTAURA TOKEN AL INICIAR
         public async Task InitializeAsync()
         {
             _token = await _js.InvokeAsync<string>("localStorage.getItem", "token");
@@ -36,7 +36,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public string GetUsuario() => GetClaimValue(ClaimTypes.Name);
 
-        // 🔐 GUARDA EN LOCALSTORAGE
+        //  GUARDA EN LOCALSTORAGE
         public async Task SetTokenAsync(string token)
         {
             _token = token;
