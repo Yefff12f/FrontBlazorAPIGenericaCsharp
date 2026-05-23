@@ -210,10 +210,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
         
  public async Task<(bool exito, string? mensaje, System.Text.Json.JsonElement data)> PostAsync(string url, object datos)
 {
-    var http = new HttpClient();
-    http.BaseAddress = new Uri("http://localhost:5018/"); // ajusta puerto
-
-    var response = await http.PostAsJsonAsync(url, datos);
+    var response = await _http.PostAsJsonAsync(url, datos);
 
     var content = await response.Content.ReadAsStringAsync();
 
