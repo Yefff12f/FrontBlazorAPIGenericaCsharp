@@ -9,6 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5100";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+var apiBaseUrl =
+    Environment.GetEnvironmentVariable("API_BASE_URL")
+    ?? builder.Configuration["Api:BaseUrl"]
+    ?? "https://proyecto-servicios-y-aplicaciones-web-production.up.railway.app/";
+
 // 🔹 Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -40,7 +45,7 @@ builder.Services.AddScoped<RolePermissionService>();
 // 🔹 HttpClient
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://proyecto-servicios-y-aplicaciones-web-production.up.railway.app")
+    BaseAddress = new Uri(apiBaseUrl)
 });
 
 // 🔹 ApiService
