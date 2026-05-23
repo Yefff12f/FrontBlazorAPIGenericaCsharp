@@ -6,6 +6,9 @@ using Microsoft.JSInterop;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5100";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // 🔹 Blazor Server
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
