@@ -37,7 +37,7 @@ builder.Services.AddScoped<RolePermissionService>();
 // 🔹 HttpClient
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5018")
+    BaseAddress = new Uri("https://proyecto-servicios-y-aplicaciones-web-production.up.railway.app")
 });
 
 // 🔹 ApiService
