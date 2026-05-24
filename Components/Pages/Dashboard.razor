@@ -1,0 +1,97 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Dashboard</h3>
+    <p class="text-muted">Resumen general del aplicativo y acceso al componente de reportes.</p>
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (resumen is not null)
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var tarjeta in Tarjetas)
+            {
+                <div class="col-md-3 col-sm-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">@tarjeta.Titulo</div>
+                            <div class="display-6 fw-semibold">@ObtenerValor(tarjeta.Clave)</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header">Consultas Disponibles</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var reporte in ReportesDisponibles)
+                    {
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="mb-1">@reporte.Titulo</h6>
+                                <p class="text-muted mb-0">@reporte.Descripcion</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <a class="btn btn-primary mt-3" href="/reportes">Ir al componente de reportes</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Dictionary<string, object?>? resumen;
+    private bool cargando = true;
+
+    private static readonly (string Clave, string Titulo)[] Tarjetas =
+    {
+        ("docentes", "Docentes"),
+        ("proyectos", "Proyectos"),
+        ("productos", "Productos"),
+        ("grupos", "Grupos"),
+        ("programas", "Programas"),
+        ("registros_calificados", "Registros Calificados"),
+        ("redes", "Redes"),
+        ("alianzas", "Alianzas")
+    };
+
+    private static readonly (string Titulo, string Descripcion)[] ReportesDisponibles =
+    {
+        ("Proyectos, docentes, lineas, ODS y palabras", "Cruza proyectos con docentes, lineas de investigacion, ODS y terminos clave."),
+        ("Proyectos, areas y aliados", "Relaciona proyectos con areas de conocimiento, areas de aplicacion y aliados."),
+        ("Productos, docentes, proyectos y tipos", "Resume productos academicos enlazados con su proyecto, docente y clasificacion."),
+        ("Grupos, docentes, lineas y universidades", "Presenta grupos de investigacion con participantes, lineas y universidad."),
+        ("Semilleros, lineas, docentes y universidades", "Cruza semilleros con lineas, participantes y universidad."),
+        ("Programas, facultades, universidades, acreditaciones y premios", "Relaciona programas con su estructura academica y reconocimientos."),
+        ("Programas, innovacion, aspectos, areas y practicas", "Muestra la configuracion curricular integrada del programa."),
+        ("Registros, enfoques, actividades y programas", "Consulta registros calificados con enfoques y actividades academicas."),
+        ("Docentes, redes, estudios y areas", "Presenta docentes con redes academicas y areas asociadas a sus estudios."),
+        ("Docentes, becas, apoyos y reconocimientos", "Resume trayectoria docente con apoyos institucionales y reconocimientos.")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var datos = await Api.ListarAsync("reportes/dashboard");
+        resumen = datos.FirstOrDefault();
+        cargando = false;
+    }
+
+    private string ObtenerValor(string clave)
+    {
+        if (resumen == null || !resumen.TryGetValue(clave, out var valor) || valor == null)
+        {
+            return "0";
+        }
+
+        return valor.ToString() ?? "0";
+    }
+}

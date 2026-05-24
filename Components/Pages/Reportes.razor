@@ -1,0 +1,115 @@
+@page "/reportes"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+
+<div class="container mt-4">
+    <h3>Reportes y Consultas</h3>
+    <p class="text-muted">Componente de consultas multitabla del aplicativo web.</p>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Seleccione una consulta</label>
+                    <select class="form-select" @bind="consultaSeleccionada">
+                        @foreach (var reporte in CatalogoReportes)
+                        {
+                            <option value="@reporte.Endpoint">@reporte.Titulo</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-primary w-100" @onclick="CargarConsulta">Ejecutar consulta</button>
+                </div>
+            </div>
+
+            @if (reporteActual is not null)
+            {
+                <div class="mt-3">
+                    <h6 class="mb-1">@reporteActual.Titulo</h6>
+                    <p class="text-muted mb-0">@reporteActual.Descripcion</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!registros.Any())
+    {
+        <div class="alert alert-warning">No se encontraron resultados para esta consulta.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        @foreach (var columna in columnas)
+                        {
+                            <th>@FormatearTitulo(columna)</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var fila in registros)
+                    {
+                        <tr>
+                            @foreach (var columna in columnas)
+                            {
+                                <td>@(fila.TryGetValue(columna, out var valor) ? valor : null)</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private List<string> columnas = new();
+    private bool cargando;
+    private string consultaSeleccionada = "proyectos-docentes-lineas-ods-palabras";
+    private ReporteDef? reporteActual;
+
+    private readonly List<ReporteDef> CatalogoReportes =
+    [
+        new("proyectos-docentes-lineas-ods-palabras", "Consulta 1", "Cruza proyectos con docentes, lineas de investigacion, ODS y palabras clave."),
+        new("proyectos-areas-aliados", "Consulta 2", "Relaciona proyectos con areas de conocimiento, areas de aplicacion y aliados."),
+        new("productos-docentes-proyectos-tipos", "Consulta 3", "Resume productos con docente, proyecto y tipo de producto."),
+        new("grupos-docentes-lineas-universidades", "Consulta 4", "Muestra grupos de investigacion con docentes, lineas y universidad."),
+        new("semilleros-lineas-docentes-universidades", "Consulta 5", "Lista semilleros con lineas, docentes participantes y universidad."),
+        new("programas-facultades-universidades-acreditaciones-premios", "Consulta 6", "Integra programas con facultad, universidad, acreditaciones y premios."),
+        new("programas-innovacion-aspectos-areas-practicas", "Consulta 7", "Relaciona programas con innovacion curricular, aspectos, areas y practicas."),
+        new("registros-enfoques-actividades-programas", "Consulta 8", "Cruza registros calificados con enfoques, actividades y programas."),
+        new("docentes-redes-estudios-areas", "Consulta 9", "Presenta docentes con redes, estudios y areas de conocimiento."),
+        new("docentes-becas-apoyos-reconocimientos", "Consulta 10", "Resume docentes con becas, apoyos profesoral y reconocimientos.")
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarConsulta();
+    }
+
+    private async Task CargarConsulta()
+    {
+        cargando = true;
+        reporteActual = CatalogoReportes.FirstOrDefault(x => x.Endpoint == consultaSeleccionada);
+        registros = await Api.ListarAsync($"reportes/{consultaSeleccionada}");
+        columnas = registros.FirstOrDefault()?.Keys.ToList() ?? new List<string>();
+        cargando = false;
+    }
+
+    private static string FormatearTitulo(string valor)
+    {
+        return valor.Replace("_", " ");
+    }
+
+    private sealed record ReporteDef(string Endpoint, string Titulo, string Descripcion);
+}

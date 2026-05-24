@@ -1,4 +1,11 @@
 @page "/"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@inject NavigationManager Nav
 
-<h3>Inicio</h3>
+@code {
+    protected override void OnInitialized()
+    {
+        Nav.NavigateTo("/dashboard", true);
+    }
+}
