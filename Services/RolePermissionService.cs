@@ -105,6 +105,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
             "/usuarios"
         };
 
+        private static readonly HashSet<string> AdminTables = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "usuarios"
+        };
+
         private static readonly HashSet<string> InvestigacionTables = new(StringComparer.OrdinalIgnoreCase)
         {
             "grupo_investigacion",
@@ -303,6 +308,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public bool CanCreateTable(string tabla)
         {
+            if (AdminTables.Contains(tabla))
+            {
+                return GetRole() == "admin";
+            }
+
             if (IsIntermediateTable(tabla))
             {
                 return GetRole() == "admin";
@@ -313,6 +323,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public bool CanEditTable(string tabla)
         {
+            if (AdminTables.Contains(tabla))
+            {
+                return GetRole() == "admin";
+            }
+
             if (IsIntermediateTable(tabla))
             {
                 return GetRole() == "admin";
@@ -323,6 +338,11 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
         public bool CanDeleteTable(string tabla)
         {
+            if (AdminTables.Contains(tabla))
+            {
+                return GetRole() == "admin";
+            }
+
             if (IsIntermediateTable(tabla))
             {
                 return GetRole() == "admin";
